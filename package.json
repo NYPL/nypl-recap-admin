@@ -1,0 +1,55 @@
+{
+  "name": "nypl-recap-admin",
+  "version": "0.0.1",
+  "description": "An admin interface for the SCSB/ReCAP project built with React and Node",
+  "main": "index.js",
+  "scripts": {
+    "dist": "NODE_ENV=production webpack --config webpack.config.js",
+    "start": "node index",
+    "start:production": "NODE_ENV=production npm start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NYPL/nypl-recap-admin.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NYPL/nypl-recap-admin/issues"
+  },
+  "homepage": "https://github.com/NYPL/nypl-recap-admin#readme",
+  "devDependencies": {
+    "node-sass": "3.8.0",
+    "react-hot-loader": "1.3.0",
+    "sass-loader": "4.0.2",
+    "style-loader": "0.13.1",
+    "webpack-dev-server": "2.7.1"
+  },
+  "dependencies": {
+    "axios": "0.14.0",
+    "babel-core": "6.26.0",
+    "babel-loader": "6.4.1",
+    "babel-plugin-istanbul": "3.0.0",
+    "babel-polyfill": "6.26.0",
+    "babel-preset-env": "1.6.1",
+    "babel-preset-react": "6.24.1",
+    "babel-register": "6.24.0",
+    "clean-webpack-plugin": "0.1.10",
+    "colors": "1.1.2",
+    "compression": "1.5.2",
+    "cookie-parser": "1.4.3",
+    "css-loader": "0.28.7",
+    "ejs": "2.5.5",
+    "express": "4.13.1",
+    "extract-text-webpack-plugin": "2.1.2",
+    "immutable": "3.8.1",
+    "jsonwebtoken": "7.1.9",
+    "lodash": "4.17.4",
+    "prop-types": "^15.6.0",
+    "react": "15.5.4",
+    "react-dom": "15.5.4",
+    "react-router": "3.0.0",
+    "webpack": "2.7.0"
+  }
+}
