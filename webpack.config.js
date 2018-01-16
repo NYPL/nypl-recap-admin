@@ -2,7 +2,6 @@ const path = require('path');
 const webpack = require('webpack');
 const CleanBuild = require('clean-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-
 // References the applications root path
 const rootPath = path.resolve(__dirname);
 
@@ -54,22 +53,6 @@ if (process.env.NODE_ENV === 'production') {
           }),
         },
       ],
-      // loaders: [
-      //   {
-      //     test: /\.jsx?$/,
-      //     exclude: /(node_modules|bower_components)/,
-      //     loaders: ['babel'],
-      //   },
-      //   {
-      //     test: /\.scss$/,
-      //     include: path.resolve(rootPath, 'src'),
-      //     loader: ExtractTextPlugin.extract(
-      //       // activate source maps via loader query
-      //       'css?sourceMap!' +
-      //       'sass?sourceMap'
-      //     ),
-      //   },
-      // ],
     },
     plugins: [
       // Cleans the Dist folder after every build.
