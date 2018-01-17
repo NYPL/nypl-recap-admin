@@ -9,14 +9,14 @@ class Dashboard extends React.Component {
 
   render() {
     return (
-      <main className={this.props.className} id={this.props.id}>
+      <div>
         <div className="backButtonBox">
           <button onClick={() => { window.history.back(); }}>&lt;&lt; Go Back</button>
         </div>
         <div>
           <h2>Tabs go here</h2>
         </div>
-      </main>
+      </div>
     );
   }
 }
