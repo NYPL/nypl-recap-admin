@@ -1,15 +1,28 @@
-import React from 'react';
-import { Route, IndexRoute } from 'react-router';
 import ApplicationContainer from '../containers/ApplicationContainer/ApplicationContainer';
-import Dashboard from '../components/Dashboard/Dashboard';
-import NotFound from '../containers/NotFound/NotFound';
+import SystemDashboard from '../containers/SystemDashboard/SystemDashboard';
+import UpdateMetadata from '../containers/UpdateMetadata/UpdateMetadata';
+import NotFound from '../components/NotFound/NotFound';
 
-const routes = (
-  <Route path="/" component={ApplicationContainer}>
-    <IndexRoute component={NotFound} />
-    <Route path="dashboard" component={Dashboard} />
-    <Route path="*" component={NotFound} />
-  </Route>
-);
+const routes = [
+  {
+    component: ApplicationContainer,
+    routes: [
+      {
+        path: '/systems-status',
+        exact: true,
+        component: SystemDashboard
+      },
+      {
+        path: '/update-metadata',
+        exact: true,
+        component: UpdateMetadata
+      },
+      {
+        path: '*',
+        component: NotFound
+      }
+    ]
+  }
+];
 
 export default routes;

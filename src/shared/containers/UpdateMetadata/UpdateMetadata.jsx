@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-class Sidebar extends React.Component {
+class UpdateMetadata extends Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -10,19 +10,19 @@ class Sidebar extends React.Component {
   render() {
     return (
       <div className={this.props.className} id={this.props.id}>
-        <h2>Sidebar</h2>
+        <h2>UpdateMetadata</h2>
       </div>
     );
   }
 }
 
-Sidebar.propTypes = {
+UpdateMetadata.propTypes = {
   className: PropTypes.string,
   id: PropTypes.string,
 };
 
-Sidebar.defaultProps = {
-  className: 'sidebar',
+UpdateMetadata.defaultProps = {
+  className: 'update-metadata-view',
 };
 
-export default Sidebar;
+export default UpdateMetadata;
