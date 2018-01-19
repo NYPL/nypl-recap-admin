@@ -13,8 +13,12 @@ class SidebarNavigation extends Component {
       <nav className={this.props.className} id={this.props.id}>
         <h2>Sidebar Navigation</h2>
         <ul>
-          <Link to="/systems-status">System Dashboard</Link>
-          <Link to="/update-metadata">Update SCSB Metadata</Link>
+          <li>
+            <Link to="/systems-status">System Dashboard</Link>
+          </li>
+          <li>
+            <Link to="/update-metadata">Update SCSB Metadata</Link>
+          </li>
         </ul>
       </nav>
     );

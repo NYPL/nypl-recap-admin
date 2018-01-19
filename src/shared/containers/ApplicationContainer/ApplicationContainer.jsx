@@ -6,7 +6,7 @@ import SidebarNavigation from '../SidebarNavigation/SidebarNavigation';
 class ApplicationContainer extends Component {
   render() {
     return (
-      <div id="recap-admin" className="recap-admin">
+      <div className='app-container'>
         <SidebarNavigation />
         <main>
           {renderRoutes(this.props.route.routes)}

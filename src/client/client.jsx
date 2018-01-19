@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import { hydrate } from 'react-dom';
 // React Router & App Routes
 import BrowserRouter from 'react-router-dom/BrowserRouter';
 import { renderRoutes } from 'react-router-config';
@@ -16,5 +16,5 @@ const AppRouter = () => {
 }
 
 window.onload = () => {
-  render(<AppRouter />, document.getElementById('nypl-recap-admin'));
+  hydrate(<AppRouter />, document.getElementById('nypl-recap-admin'));
 };
