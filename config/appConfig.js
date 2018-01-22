@@ -9,6 +9,10 @@ export default {
     production: '',
   },
   loginUrl: 'https://isso.nypl.org/auth/login',
+  sqs: {
+    region: process.env.AWS_REGION || 'us-east-1',
+    api: process.env.AWS_SQS_API_URL || 'https://sqs.us-east-1.amazonaws.com/224280085904/scsb-item-update-app'
+  },
   publicKey:
 		'-----BEGIN PUBLIC KEY-----\n' +
 		'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtmIMVmUnbwr/65MYmLGJ\n' +

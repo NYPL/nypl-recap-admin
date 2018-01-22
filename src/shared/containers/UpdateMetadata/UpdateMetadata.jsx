@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import axios from 'axios';
 
 class UpdateMetadata extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      type: 'transfer-barcode',
+      type: 'transfer',
       barcodes: [
         {
           value: ''
@@ -30,8 +31,53 @@ class UpdateMetadata extends Component {
     this.setState({ [name]: value });
   }
 
-  handleFormSubmit() {
-    console.log(this.state);
+  handleFormSubmit(event) {
+    event.preventDefault();
+
+    if (this.areFormFieldsValid(this.state)) {
+      const { type } = this.state;
+
+      if (type === 'transfer') {
+        const { barcodes, protectCGD } = this.state;
+        const sanitizedBarcodes = this.sanitizeBarcodesList(barcodes);
+        console.log('sanitized barcodes list', sanitizedBarcodes);
+
+        return axios.post('/update-metadata', {
+          barcodes: sanitizedBarcodes,
+          protectCGD,
+          email: 'johndoe@example.com',
+          action: type
+        }).then(response => {
+          console.log({
+            barcodes: sanitizedBarcodes,
+            protectCGD,
+            email: 'johndoe@example.com',
+            action: type
+          });
+
+          console.log('Form Submission Response: ', response);
+        }).catch(error => {
+          console.log('Form Error: ', error);
+        });
+      }
+    }
+  }
+
+  validateBarcodesList(barcodesList) {
+    if (barcodesList && Array.isArray(barcodesList) && barcodesList.length > 0 && barcodesList[0].value !== '') {
+      return true;
+    }
+    return false;
+  }
+
+  areFormFieldsValid(formState) {
+    const { type } = formState;
+
+    // Handle validations based on form type
+    if (type === 'transfer') {
+      const { barcodes } = formState;
+      return this.validateBarcodesList(barcodes);
+    }
   }
 
   renderFormField({ inputRef, ...rest }) {
@@ -54,6 +100,10 @@ class UpdateMetadata extends Component {
     }
   }
 
+  sanitizeBarcodesList(barcodesArray) {
+    return barcodesArray.map(item => item.value);
+  }
+
   addBarcodeField() {
     this.setState({ barcodes: this.state.barcodes.concat([{ value: '' }]) });
   }
@@ -65,52 +115,41 @@ class UpdateMetadata extends Component {
   renderTransferBarcodeForm() {
     return (
       <form onSubmit={this.handleFormSubmit}>
-        {this.state.barcodes.map((barcode, index) => (
-          <li key={index}>
-            <input
-              type="text"
-              placeholder={index > 0 ? `Barcode #${index + 1}` : 'Barcode'}
-              value={barcode.value}
-              onChange={this.handleBarcodesInputChange(index)}
-            />
-            {
-              (index > 0) &&
-              <button type="button" onClick={this.removeBarcodeField.bind(this, index)}>-</button>
-            }
-          </li>
-        ))}
-        {this.state.barcodes.length < 10 &&
+        {
+          this.state.barcodes.map((barcode, index) => (
+            <div key={index}>
+              <label htmlFor={`barcode-${index + 1}`}>
+                {index > 0 ? '' : 'Barcode'}
+              </label>
+              <input
+                id={`barcode-${index + 1}`}
+                type="text"
+                placeholder={index > 0 ? `Barcode #${index + 1}` : 'Barcode'}
+                value={barcode.value}
+                onChange={this.handleBarcodesInputChange(index)}
+                pattern="[0-9]{14}"
+                maxLength="14"
+              />
+              {
+                (index > 0) &&
+                <button type="button" onClick={this.removeBarcodeField.bind(this, index)}>-</button>
+              }
+            </div>
+          ))
+        }
+        {
+          this.state.barcodes.length < 10 &&
           <button type="button" onClick={this.addBarcodeField}>
             Add New Barcode
           </button>
         }
-        <div>
-          <label htmlFor="barcode">Barcode</label>
-          <input
-            id="barcode"
-            name="barcode"
-            type="text"
-            value={this.state.barcode}
-            onChange={this.handleInputChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="customerCode">Customer Code</label>
-          <input
-            id="customerCode"
-            name="customerCode"
-            type="text"
-            value={this.state.customerCode}
-            onChange={this.handleInputChange}
-          />
-        </div>
         <div>
           <label htmlFor="protectCGD">Protect CGD</label>
           <input
             id="protectCGD"
             name="protectCGD"
             type="checkbox"
-            checked={this.state.isGoing}
+            checked={this.state.protectCGD}
             onChange={this.handleInputChange}
           />
         </div>
@@ -120,6 +159,8 @@ class UpdateMetadata extends Component {
   }
 
   render() {
+    console.log(this.state);
+
     return (
       <div className={this.props.className} id={this.props.id}>
         <h2>Update SCSB Metadata</h2>

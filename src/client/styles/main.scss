@@ -30,4 +30,27 @@
     grid-row: 2;
     margin-left: 20px;
   }
+
+  form {
+    & > div {
+      display: flex;
+      align-items: center;
+      margin: 10px 20px;
+    }
+
+    label {
+      order: 1;
+      width: 10em;
+      text-align: right;
+      padding-right: 0.5em;
+      white-space: nowrap;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    input[type='text'], input[type='checkbox'] {
+      order: 2;
+      flex: 1 1 auto;
+    }
+  }
 }
