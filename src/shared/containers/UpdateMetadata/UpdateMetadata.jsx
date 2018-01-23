@@ -7,6 +7,7 @@ class UpdateMetadata extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      currentForm: 'update',
       updateMetadataForm: {
         type: 'update',
         barcodes: [],
@@ -29,44 +30,7 @@ class UpdateMetadata extends Component {
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
 
-    this.setState({ [name]: value });
-  }
-
-  handleFormSubmit(event) {
-    event.preventDefault();
-
-    if (this.areFormFieldsValid(this.state)) {
-      const { type } = this.state;
-
-      if (type === 'update') {
-        const { barcodes, protectCGD } = this.state;
-
-        return axios.post('/update-metadata', {
-          barcodes,
-          protectCGD,
-          email: 'johndoe@example.com',
-          action: type
-        }).then(response => {
-          console.log('Form Submission Response: ', response);
-        }).catch(error => {
-          console.log('Form Error: ', error);
-        });
-      }
-    }
-  }
-
-  validateBarcodesList(list) {
-    return (list && Array.isArray(list) && list.length > 0 && list[0] !== '') ? true : false;
-  }
-
-  areFormFieldsValid(formState) {
-    const { type } = formState;
-
-    // Handle validations based on form type
-    if (type === 'update') {
-      const { barcodes } = formState;
-      return this.validateBarcodesList(barcodes);
-    }
+    this.setState({ updateMetadataForm: { ...this.state.updateMetadataForm, [name]: value } });
   }
 
   handleTextareaOnBlur(event) {
@@ -90,7 +54,49 @@ class UpdateMetadata extends Component {
     }
   }
 
+  handleFormSubmit(event) {
+    event.preventDefault();
+
+    if (this.areFormFieldsValid(this.state)) {
+      const { currentForm } = this.state;
+
+      if (currentForm === 'update') {
+        const {
+          updateMetadataForm: {
+            barcodes,
+            protectCGD,
+            type
+          }
+        } = this.state;
+
+        return axios.post('/update-metadata', {
+          barcodes,
+          protectCGD,
+          email: 'johndoe@example.com',
+          action: type
+        }).then(response => {
+          console.log('Form Submission Response: ', response);
+        }).catch(error => {
+          console.log('Form Error: ', error);
+        });
+      }
+    }
+  }
+
+  validateBarcodesList(list) {
+    return (list && Array.isArray(list) && list.length > 0 && list[0] !== '') ? true : false;
+  }
+
+  areFormFieldsValid(formState) {
+    const { currentForm, updateMetadataForm: { barcodes } } = formState;
+
+    if (currentForm === 'update') {
+      return this.validateBarcodesList(barcodes);
+    }
+  }
+
   renderUpdateMetadataForm() {
+    const { updateMetadataForm: { protectCGD }} = this.state;
     return (
       <form onSubmit={this.handleFormSubmit}>
         <div>
@@ -107,7 +113,7 @@ class UpdateMetadata extends Component {
             id="protectCGD"
             name="protectCGD"
             type="checkbox"
-            checked={this.state.protectCGD}
+            checked={protectCGD}
             onChange={this.handleInputChange}
           />
         </div>
