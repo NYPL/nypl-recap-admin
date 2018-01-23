@@ -20,10 +20,7 @@
   },
   "homepage": "https://github.com/NYPL/nypl-recap-admin#readme",
   "devDependencies": {
-    "node-sass": "3.8.0",
     "react-hot-loader": "1.3.0",
-    "sass-loader": "4.0.2",
-    "style-loader": "0.13.1",
     "webpack-dev-server": "2.7.1"
   },
   "dependencies": {
@@ -49,11 +46,14 @@
     "immutable": "3.8.1",
     "jsonwebtoken": "7.1.9",
     "lodash": "4.17.4",
+    "node-sass": "3.8.0",
     "prop-types": "15.6.0",
     "react": "16.2.0",
     "react-dom": "16.2.0",
     "react-router-config": "1.0.0-beta.4",
     "react-router-dom": "4.2.2",
+    "sass-loader": "4.0.2",
+    "style-loader": "0.13.1",
     "webpack": "2.7.0"
   }
 }
