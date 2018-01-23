@@ -1,26 +1,27 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
+import isEqual from 'lodash/isEqual';
 
 class UpdateMetadata extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      type: 'transfer',
-      barcodes: [
-        {
-          value: ''
-        }
-      ],
-      barcode: '',
-      customerCode: '',
-      bibRecordNumber: '',
-      protectCGD: true
+      updateMetadataForm: {
+        type: 'update',
+        barcodes: [],
+        protectCGD: false
+      },
+      transferBarcodeForm: {
+        type: 'transfer',
+        barcode: '',
+        protectCGD: false
+      }
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
-    this.addBarcodeField = this.addBarcodeField.bind(this);
+    this.handleTextareaOnBlur = this.handleTextareaOnBlur.bind(this);
   }
 
   handleInputChange(event) {
@@ -37,24 +38,15 @@ class UpdateMetadata extends Component {
     if (this.areFormFieldsValid(this.state)) {
       const { type } = this.state;
 
-      if (type === 'transfer') {
+      if (type === 'update') {
         const { barcodes, protectCGD } = this.state;
-        const sanitizedBarcodes = this.sanitizeBarcodesList(barcodes);
-        console.log('sanitized barcodes list', sanitizedBarcodes);
 
         return axios.post('/update-metadata', {
-          barcodes: sanitizedBarcodes,
+          barcodes,
           protectCGD,
           email: 'johndoe@example.com',
           action: type
         }).then(response => {
-          console.log({
-            barcodes: sanitizedBarcodes,
-            protectCGD,
-            email: 'johndoe@example.com',
-            action: type
-          });
-
           console.log('Form Submission Response: ', response);
         }).catch(error => {
           console.log('Form Error: ', error);
@@ -63,86 +55,52 @@ class UpdateMetadata extends Component {
     }
   }
 
-  validateBarcodesList(barcodesList) {
-    if (barcodesList && Array.isArray(barcodesList) && barcodesList.length > 0 && barcodesList[0].value !== '') {
-      return true;
-    }
-    return false;
+  validateBarcodesList(list) {
+    return (list && Array.isArray(list) && list.length > 0 && list[0] !== '') ? true : false;
   }
 
   areFormFieldsValid(formState) {
     const { type } = formState;
 
     // Handle validations based on form type
-    if (type === 'transfer') {
+    if (type === 'update') {
       const { barcodes } = formState;
       return this.validateBarcodesList(barcodes);
     }
   }
 
-  renderFormField({ inputRef, ...rest }) {
-    return (
-      <input ref={inputRef} {...rest} />
-    );
-  }
+  handleTextareaOnBlur(event) {
+    const textAreaValue = event.target.value;
 
-  handleBarcodesInputChange(index) {
-    return (evt) => {
-      const updatedBarcodes = this.state.barcodes.map((barcode, idx) => {
-        if (index !== idx) {
-          return barcode;
-        }
+    if (typeof textAreaValue === 'string' && textAreaValue !== '') {
+      const linesOfText = textAreaValue.trim().split(/\n/);
 
-        return { ...barcode, value: evt.target.value };
-      });
+      const sanatizedBarcodes = linesOfText.filter(item => item !== (undefined || null || ''));
+      //.map(item => item.replace(/(^[,\s]+)|([,\s]+$)/g, ''));
+      // .filter(item => item.length === 14);
 
-      this.setState({ barcodes: updatedBarcodes });
+      const {
+        updateMetadataForm: { barcodes }
+      } = this.state;
+
+      if (!isEqual(sanatizedBarcodes, barcodes)) {
+        const newBarcodes = {...this.state.updateMetadataForm, barcodes: sanatizedBarcodes };
+        this.setState({ updateMetadataForm: newBarcodes });
+      }
     }
   }
 
-  sanitizeBarcodesList(barcodesArray) {
-    return barcodesArray.map(item => item.value);
-  }
-
-  addBarcodeField() {
-    this.setState({ barcodes: this.state.barcodes.concat([{ value: '' }]) });
-  }
-
-  removeBarcodeField(index) {
-    this.setState({ barcodes: this.state.barcodes.filter((elem, idx) => index !== idx ) });
-  }
-
-  renderTransferBarcodeForm() {
+  renderUpdateMetadataForm() {
     return (
       <form onSubmit={this.handleFormSubmit}>
-        {
-          this.state.barcodes.map((barcode, index) => (
-            <div key={index}>
-              <label htmlFor={`barcode-${index + 1}`}>
-                {index > 0 ? '' : 'Barcode'}
-              </label>
-              <input
-                id={`barcode-${index + 1}`}
-                type="text"
-                placeholder={index > 0 ? `Barcode #${index + 1}` : 'Barcode'}
-                value={barcode.value}
-                onChange={this.handleBarcodesInputChange(index)}
-                pattern="[0-9]{14}"
-                maxLength="14"
-              />
-              {
-                (index > 0) &&
-                <button type="button" onClick={this.removeBarcodeField.bind(this, index)}>-</button>
-              }
-            </div>
-          ))
-        }
-        {
-          this.state.barcodes.length < 10 &&
-          <button type="button" onClick={this.addBarcodeField}>
-            Add New Barcode
-          </button>
-        }
+        <div>
+          <label htmlFor="barcodes">Barcode(s)</label>
+          <textarea
+            id="barcodes"
+            name="barcodes"
+            onBlur={this.handleTextareaOnBlur}
+          />
+        </div>
         <div>
           <label htmlFor="protectCGD">Protect CGD</label>
           <input
@@ -153,7 +111,9 @@ class UpdateMetadata extends Component {
             onChange={this.handleInputChange}
           />
         </div>
-        <input type="submit" value="Submit" />
+        <div>
+          <input type="submit" value="Submit" />
+        </div>
       </form>
     );
   }
@@ -164,7 +124,7 @@ class UpdateMetadata extends Component {
     return (
       <div className={this.props.className} id={this.props.id}>
         <h2>Update SCSB Metadata</h2>
-        {this.renderTransferBarcodeForm()}
+        {this.renderUpdateMetadataForm()}
       </div>
     );
   }
