@@ -63,9 +63,12 @@ passport.use('provider', new OAuth2Strategy(
     state: true
   },
   function(accessToken, refreshToken, profile, done) {
-    const {name, email, user_id} = jwt_decode(accessToken);
-    const user = {name, email, user_id}
     
+    const {email, name, user_id} = jwt_decode(accessToken);
+    
+    if (!email || !emailAuthorized(email)) { return done(null, false) }
+
+    const user = {email, name, user_id};
     console.log('User decoded in callback:', user);
     
     done(null, user);
@@ -161,3 +164,12 @@ if (!isProduction) {
 		);
   });
 }
+
+function emailAuthorized(email) {
+  
+  const authorized_users = s3.getObject(
+    {Bucket: 'platform_admin', Key: 'authorization.json'}, 
+    (err, data) => if (err) console.log(err, err.stack);
+  )
+}
+
