@@ -91,9 +91,11 @@ app.get('/auth/provider', passport.authenticate('provider', {scope: ['openid', '
 // Finish the authentication process by attempting to obtain an access
 // token.  If authorization was granted, the user will be logged in.
 // Otherwise, authentication has failed.
-app.get('/callback',
-  passport.authenticate('provider', { successRedirect: '/',
-                                      failureRedirect: '/auth/provider'}));
+app.get(
+  '/callback',
+  passport.authenticate('provider', { failureRedirect: '/auth/provider'}),
+  (req, res) => res.redirect(req.session.returnTo) 
+);
 
 
 // Establishes all application routes handled by react-router
