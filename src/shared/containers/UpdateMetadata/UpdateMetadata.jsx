@@ -138,6 +138,9 @@ class UpdateMetadata extends Component {
     return !isEmpty(barcodes) && isEmpty(incorrect_barcodes) ? true : false;
   }
 
+  /**
+  * @desc Handles returning the correct DOM for the Update Metadata form
+  */
   renderUpdateMetadataForm() {
     const areBarcodesInvalid = (this.state.incorrect_barcodes.length > 0);
     const barcodesInvalidClass = areBarcodesInvalid ? 'error' : '';

@@ -3,6 +3,7 @@
   "destination": "./esdoc",
   "includes": ["\\.(js|jsx|es6)$"],
   "plugins": [
-    { "name": "esdoc-standard-plugin" }
+    { "name": "esdoc-standard-plugin" },
+    { "name": "esdoc-jsx-plugin", "option": { "enable": true } }
   ]
 }
