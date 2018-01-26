@@ -146,6 +146,18 @@ class UpdateMetadata extends Component {
     const barcodesInvalidClass = areBarcodesInvalid ? 'error' : '';
     return (
       <form onSubmit={this.handleFormSubmit}>
+        {
+          this.state.formResult.processed === true &&
+          <div className="response-success">
+            Your entry was submitted successfully
+          </div>
+        }
+        {
+          this.state.formResult.processed === false &&
+          <div className="response-failure">
+            There was an error with your submission
+          </div>
+        }
         <div>
           <label htmlFor="barcodes">Barcode(s)</label>
           <textarea
