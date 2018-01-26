@@ -7,6 +7,7 @@
     "dist": "NODE_ENV=production webpack --config webpack.config.js",
     "start": "node index",
     "start:production": "NODE_ENV=production npm start",
+    "esdoc": "./node_modules/.bin/esdoc && open ./esdoc/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,6 +21,8 @@
   },
   "homepage": "https://github.com/NYPL/nypl-recap-admin#readme",
   "devDependencies": {
+    "esdoc": "1.0.4",
+    "esdoc-standard-plugin": "1.0.0",
     "react-hot-loader": "1.3.0",
     "webpack-dev-server": "2.7.1"
   },
