@@ -22,24 +22,25 @@ class UpdateMetadata extends Component {
   }
 
   /**
-  * @desc Iterates through a given array and places correctly formed barcodes into the appropriate
-  * array. In addition, incorrect barcodes are placed in their independent array.
-  * @param {array} array - list containing barcodes of type string
+  * @desc Generates an array from the field input value that matches numerical characters of
+  * maximum barcodeLength. Iterates through the array and places correctly and/or incorrectly formed
+  * barcodes into their appropriate arrays.
+  * @param {string} inputValue - string value from input field
   * @param {integer} barcodeLength - maximum barcode length
   * @return {object} object containing the result of correct/incorrect barcodes as arrays
   */
-  sanitizeBarcodesArray(array, barcodeLength = 14) {
+  sanitizeBarcodesField(inputValue = '', barcodeLength = 14) {
     const correctArray = [];
     const incorrectArray = [];
-    for (let value of array) {
-      if (typeof value === 'string' && value.trim() !== '') {
-        const cleanedValue = value.replace(/[^\d]/g, '');
+    const barcodeRegex = new RegExp(`^\\d{${barcodeLength}}$`);
+    // generate an array of barcodes, filter empty values
+    const linesArray = inputValue.trim().split(/[\W\s]+/).filter(v => v);
 
-        if (cleanedValue !== '' && cleanedValue.length === barcodeLength) {
-          correctArray.push(cleanedValue);
-        } else {
-          incorrectArray.push(value);
-        }
+    for (let value of linesArray) {
+      if (value.match(barcodeRegex)) {
+        correctArray.push(value);
+      } else {
+        incorrectArray.push(value);
       }
     }
 
@@ -71,8 +72,7 @@ class UpdateMetadata extends Component {
   const fieldValue = type === 'checkbox' ? checked : value;
 
     if (type === 'textarea' && name === 'barcodes') {
-      const lines = fieldValue.trim().split(/\n/);
-      const { correct_barcodes, incorrect_barcodes } = this.sanitizeBarcodesArray(lines);
+      const { correct_barcodes, incorrect_barcodes } = this.sanitizeBarcodesField(fieldValue);
 
       if (!isEqual(correct_barcodes, this.state.barcodes)) {
         this.setState((state) => ({ barcodes: [...state.barcodes, ...correct_barcodes] }));
