@@ -92,10 +92,8 @@ class TransferMetadata extends Component {
 
     // React pattern to handle asynchronous state changes
     this.setState(prevState => {
-      const previousState = prevState;
-      const updatedFormFieldsState = {...previousState.formFields, [name]: value };
-      this.validateField(name, previousState);
-      return previousState;
+      this.validateField(name, prevState);
+      return prevState;
     });
   }
 
@@ -112,7 +110,6 @@ class TransferMetadata extends Component {
     forIn(this.state.formFields, (value, key) => {
       this.validateField(key, this.state, true);
     });
-
 
     if (isEmpty(this.state.fieldErrors)) {
       const {
