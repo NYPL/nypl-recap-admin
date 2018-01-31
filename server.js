@@ -6,7 +6,7 @@ import bodyParser from 'body-parser';
 import colors from 'colors';
 // App Route Handling
 import { initializeTokenAuth } from './src/server/routes/auth';
-import { updateMetadata } from './src/server/routes/api';
+import { updateMetadata, transferMetadata } from './src/server/routes/api';
 import { renderAdminView } from './src/server/routes/render';
 // App Config File
 import appConfig from './config/appConfig.js';
@@ -38,6 +38,7 @@ app.get('*', renderAdminView);
 
 // Handle sending message to SQS for UpdateMetadata Form
 app.post('/update-metadata', updateMetadata);
+app.post('/transfer-metadata', transferMetadata);
 
 const server = app.listen(app.get('port'), (error) => {
   if (error) {

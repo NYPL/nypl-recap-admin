@@ -51,3 +51,16 @@ export function updateMetadata(req, res, next) {
     });
   });
 }
+
+export function transferMetadata(req, res, next) {
+  const params = req.body;
+
+  if (!params) {
+    return res.status(400).json({
+      error: 'Error: malformed request; verify payload properties',
+      status: 400
+    });
+  }
+
+  console.log(params);
+}

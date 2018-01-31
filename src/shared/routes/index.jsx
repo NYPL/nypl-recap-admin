@@ -1,5 +1,5 @@
 import ApplicationContainer from '../containers/ApplicationContainer/ApplicationContainer';
-import SystemDashboard from '../containers/SystemDashboard/SystemDashboard';
+import TransferMetadata from '../containers/TransferMetadata/TransferMetadata';
 import UpdateMetadata from '../containers/UpdateMetadata/UpdateMetadata';
 import NotFound from '../components/NotFound/NotFound';
 
@@ -8,9 +8,9 @@ const routes = [
     component: ApplicationContainer,
     routes: [
       {
-        path: '/systems-status',
+        path: '/transfer-metadata',
         exact: true,
-        component: SystemDashboard
+        component: TransferMetadata
       },
       {
         path: '/update-metadata',
