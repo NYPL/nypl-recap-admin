@@ -8,6 +8,8 @@ import passport from 'passport';
 import { OAuth2Strategy } from 'passport-oauth';
 import { ensureLoggedIn } from 'connect-ensure-login';
 import jwt_decode from 'jwt-decode';
+const AWS = require('aws-sdk');
+
 // App Route Handling
 import { initializeTokenAuth } from './src/server/routes/auth';
 import { getPatronData } from './src/server/routes/api';
@@ -19,7 +21,7 @@ const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
 const viewsPath = path.resolve(rootPath, 'src/server/views');
 const isProduction = process.env.NODE_ENV === 'production';
-
+const refreshAuthorizedUsersIntervalMs = 600000
 /* Express Server Configurations
  * -----------------------------
 */
@@ -42,6 +44,22 @@ app.use(passport.initialize());
 // use passport sessions
 app.use(passport.session());
 
+// Set up list of authorized users
+let authorized_users = undefined;
+(function retrieve_authorized_users() {
+  new AWS.S3().getObject( {Bucket: 'nypl-platform-admin', Key: 'authorization.json'}, 
+    (err, data) => { 
+      if (err) {
+        console.log(err, err.stack);
+      } else {
+        console.log('Retrieved authorization data.');
+        authorized_users = JSON.parse(data.Body.toString())
+      }
+      setTimeout(retrieve_authorized_users, refreshAuthorizedUsersIntervalMs);
+    }
+  )
+})()
+
 // Setup OAuth2 authentication
 // Protect all routes, except the auth provider
 app.use(function (req, res, next) {
@@ -58,14 +76,14 @@ passport.use('provider', new OAuth2Strategy(
     authorizationURL: 'https://isso.nypl.org/oauth/authorize',
     tokenURL: 'https://isso.nypl.org/oauth/token',
     clientID: 'platform_admin',
-    clientSecret: 'cc7ea675154a927f013739a6dc598985e5a08cfc',
+    clientSecret: process.env.ISSO_CLIENT_SECRET, 
     callbackURL: 'http://local.nypl.org/callback',
     state: true
   },
   function(accessToken, refreshToken, profile, done) {
     
     const {email, name, user_id} = jwt_decode(accessToken);
-    
+   
     if (!email || !emailAuthorized(email)) { return done(null, false) }
 
     const user = {email, name, user_id};
@@ -166,10 +184,6 @@ if (!isProduction) {
 }
 
 function emailAuthorized(email) {
-  
-  const authorized_users = s3.getObject(
-    {Bucket: 'platform_admin', Key: 'authorization.json'}, 
-    (err, data) => if (err) console.log(err, err.stack);
-  )
+  return authorized_users.indexOf(email) !== -1;
 }
 
