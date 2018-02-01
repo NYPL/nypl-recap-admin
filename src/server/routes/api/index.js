@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { fromJS, Map, List } from 'immutable';
+import aws from 'aws-sdk';
 import config from '../../../../config/appConfig';
 
 function constructApiHeaders(token = '') {
@@ -11,46 +11,43 @@ function constructApiHeaders(token = '') {
   };
 }
 
-export function getPatronData(req, res, next) {
-  if (req.tokenResponse.isTokenValid
-    && req.tokenResponse.accessToken
-    && req.tokenResponse.decodedPatron
-    && req.tokenResponse.decodedPatron.sub
-  ) {
-    const userId = req.tokenResponse.decodedPatron.sub;
-    const userToken = req.tokenResponse.accessToken;
-    const patronHoldsApi = `${config.api.development}/patrons/${userId}/holds`;
-    const itemsApi = `${config.api.development}/items`;
+function getSqsPayload(object) {
+  return {
+    'MessageBody': object.message,
+    'QueueUrl': object.queueUrl
+  };
+}
 
-    console.log('getPatronData API Call', userId);
 
-    // axios
-    //   .get(patronHoldsApi, constructApiHeaders(userToken))
-    //   .then((response) => {
-    //     if (response.data) {
-    //       // Data is empty for the Patron
-    //       if (response.data.statusCode === 404) {
-    //         console.log(response.data.statusCode, response.data.message);
-    //         res.locals.data = {};
-    //       }
-    //       // Data exists for the Patron
-    //       if (response.data.statusCode === 200 && response.data.data) {
-    //         res.locals.data = {
-    //           PatronStore: {
-    //             patronHolds: response.data.data,
-    //           },
-    //         };
-    //       }
-    //     }
-    //     // Continue next function call
-    //     next();
-    //   })
-    //   .catch((error) => {
-    //     // Debugging
-    //     console.log(`API ERROR: ${patronHoldsApi}`, error);
-    //     res.locals.data = {};
-    //     // Continue next function call
-    //     next();
-    //   });
+export function updateMetadata(req, res, next) {
+  const params = req.body;
+
+  if (!params) {
+    return res.status(400).json({
+      error: 'Error: malformed request; verify payload properties',
+      status: 400
+    });
   }
+
+  const paramsAsJsonString = JSON.stringify(params);
+  const { api , region } = config.sqs;
+  aws.config.update({ region: region });
+  // Send to SQS
+  const sqsPayload = getSqsPayload({ message: paramsAsJsonString, queueUrl: api });
+  const sqs = new aws.SQS({ apiVersion: '2012-11-05' });
+
+  sqs.sendMessage(sqsPayload, (err, data) => {
+    if (err) {
+      console.log("Error", err);
+      return res.status(503).json({
+        error: err,
+        status: 503
+      });
+    }
+
+    return res.json({
+      status: 200,
+      response: data
+    });
+  });
 }

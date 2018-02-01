@@ -4,6 +4,7 @@
   "description": "An admin interface for the SCSB/ReCAP project built with React and Node",
   "main": "index.js",
   "scripts": {
+    "esdoc": "./node_modules/.bin/esdoc && open ./esdoc/index.html",
     "dist": "NODE_ENV=production webpack --config webpack.config.js",
     "start": "node index",
     "start:production": "NODE_ENV=production npm start",
@@ -20,10 +21,10 @@
   },
   "homepage": "https://github.com/NYPL/nypl-recap-admin#readme",
   "devDependencies": {
-    "node-sass": "3.8.0",
+    "esdoc": "1.0.4",
+    "esdoc-jsx-plugin": "1.0.0",
+    "esdoc-standard-plugin": "1.0.0",
     "react-hot-loader": "1.3.0",
-    "sass-loader": "4.0.2",
-    "style-loader": "0.13.1",
     "webpack-dev-server": "2.7.1"
   },
   "dependencies": {
@@ -35,7 +36,9 @@
     "babel-polyfill": "6.26.0",
     "babel-preset-env": "1.6.1",
     "babel-preset-react": "6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
     "babel-register": "6.24.0",
+    "body-parser": "1.18.2",
     "clean-webpack-plugin": "0.1.10",
     "colors": "1.1.2",
     "compression": "1.5.2",
@@ -50,6 +53,7 @@
     "jsonwebtoken": "7.1.9",
     "jwt-decode": "^2.2.0",
     "lodash": "4.17.4",
+    "node-sass": "3.8.0",
     "passport": "^0.4.0",
     "passport-oauth": "^1.0.0",
     "prop-types": "15.6.0",
@@ -57,6 +61,8 @@
     "react-dom": "16.2.0",
     "react-router-config": "1.0.0-beta.4",
     "react-router-dom": "4.2.2",
+    "sass-loader": "4.0.2",
+    "style-loader": "0.13.1",
     "webpack": "2.7.0"
   }
 }

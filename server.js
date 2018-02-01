@@ -3,6 +3,7 @@ import express from 'express';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import compress from 'compression';
+import bodyParser from 'body-parser';
 import colors from 'colors';
 import passport from 'passport';
 import { OAuth2Strategy } from 'passport-oauth';
@@ -12,7 +13,7 @@ const AWS = require('aws-sdk');
 
 // App Route Handling
 import { initializeTokenAuth } from './src/server/routes/auth';
-import { getPatronData } from './src/server/routes/api';
+import { updateMetadata } from './src/server/routes/api';
 import { renderAdminView } from './src/server/routes/render';
 // App Config File
 import appConfig from './config/appConfig.js';
@@ -27,6 +28,8 @@ const refreshAuthorizedUsersIntervalMs = 600000;
 */
 const app = express();
 app.use(compress());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 // Disables the Server response from displaying Express as the server engine
 app.disable('x-powered-by');
 app.set('view engine', 'ejs');
@@ -36,7 +39,7 @@ app.set('port', process.env.PORT || appConfig.port);
 app.use(cookieParser());
 // Set Global publicKey
 app.set('nyplPublicKey', appConfig.publicKey);
-app.use(session({ secret: 'gregoneillbringstheparty' }));
+app.use(session({ secret: '2aad5e41c30cab49515b6dbb903c01b1e0bf590667b25b60f534043c5b554e37' }));
 // Sets the server path to /dist
 app.use(express.static(distPath));
 // Use passport middleware for authentication
@@ -130,6 +133,9 @@ app.get(
 // Establishes all application routes handled by react-router
 app.get('*', renderAdminView);
 //app.get('*', initializeTokenAuth, getPatronData, renderAdminView);
+
+// Handle sending message to SQS for UpdateMetadata Form
+app.post('/update-metadata', updateMetadata);
 
 const server = app.listen(app.get('port'), (error) => {
   if (error) {
