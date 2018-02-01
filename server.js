@@ -21,7 +21,7 @@ const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
 const viewsPath = path.resolve(rootPath, 'src/server/views');
 const isProduction = process.env.NODE_ENV === 'production';
-const refreshAuthorizedUsersIntervalMs = 600000
+const refreshAuthorizedUsersIntervalMs = 6000000;
 /* Express Server Configurations
  * -----------------------------
 */
@@ -47,15 +47,25 @@ app.use(passport.session());
 // Set up list of authorized users
 let authorized_users = undefined;
 (function retrieve_authorized_users() {
-  new AWS.S3().getObject( {Bucket: 'nypl-platform-admin', Key: 'authorization.json'}, 
-    (err, data) => { 
-      if (err) {
-        console.log(err, err.stack);
-      } else {
-        console.log('Retrieved authorization data.');
+  new AWS.S3().getObject(
+    {Bucket: 'nypl-platform-admin', Key: 'authorization.json'}, 
+    (s3_err, data) => { 
+      try { 
+        if (s3_err) {
+          throw s3_err;
+        }
+
         authorized_users = JSON.parse(data.Body.toString())
+        console.log('Retrieved authorization data.');
+
+      } catch(err) {
+        // Log the error, but hopefully we have an older value of authorized_users 
+        console.log('Problem retrieving authorization list from S3: ', err.message);
+
+      } finally {
+        // Even if we've had an error, optimistically expect things will resolve at some point
+        setTimeout(retrieve_authorized_users, refreshAuthorizedUsersIntervalMs);
       }
-      setTimeout(retrieve_authorized_users, refreshAuthorizedUsersIntervalMs);
     }
   )
 })()
