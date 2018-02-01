@@ -72,7 +72,7 @@ let authorized_users = undefined;
 })()
 
 // Setup OAuth2 authentication
-// Protect all routes, except the auth provider
+// Protect all routes, except the auth provider and callback
 app.use(function (req, res, next) {
   if (req.originalUrl.match(/(?:\/auth\/provider|callback)(?:\?.*)?$/)) {
     console.info('not checking logged in status for request url:', req.originalUrl);
