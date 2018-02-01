@@ -9,16 +9,23 @@ $ npm install
 ```
 
 ## Running the Application
+### Authorization
+The app is configured to use isso.nypl.org for OAuth authentication. You will need to pass in the correct client secret
+as an environment variable for the authentication to work correctly. You can look up the secret in the parameter store;
+the clientID is `platform_admin`. Set the environment variable `ISSO_CLIENT_SECRET` to the client secret when running
+the app, as set out below.
+
+
 ### Development Mode
 We use Webpack to fire off a hot-reloading development server. This allows for continuous code changes without the need to refresh your browser.
 
 ```sh
-$ npm start // Starts localhost:3001 defaulting to the Development API
+$ ISSO_CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 defaulting to the Development API
 ```
 
 You can also set the `APP_ENV` variable which dictates what API environment to use as the main source.
 ```sh
-$ APP_ENV=development|qa|production npm start // Starts localhost:3001 with set APP_ENV
+$ APP_ENV=development|qa|production ISSO_CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 with set APP_ENV
 ```
 
 ### Production Mode
