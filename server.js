@@ -21,7 +21,7 @@ const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
 const viewsPath = path.resolve(rootPath, 'src/server/views');
 const isProduction = process.env.NODE_ENV === 'production';
-const refreshAuthorizedUsersIntervalMs = 6000000;
+const refreshAuthorizedUsersIntervalMs = 600000;
 /* Express Server Configurations
  * -----------------------------
 */
@@ -51,9 +51,7 @@ let authorized_users = undefined;
     {Bucket: 'nypl-platform-admin', Key: 'authorization.json'}, 
     (s3_err, data) => { 
       try { 
-        if (s3_err) {
-          throw s3_err;
-        }
+        if (s3_err) throw s3_err;
 
         authorized_users = JSON.parse(data.Body.toString())
         console.log('Retrieved authorization data.');
@@ -94,7 +92,7 @@ passport.use('provider', new OAuth2Strategy(
     
     const {email, name, user_id} = jwt_decode(accessToken);
    
-    if (!email || !emailAuthorized(email)) { return done(null, false) }
+    if (!email || !emailAuthorized(email)) return done(null, false)
 
     const user = {email, name, user_id};
     console.log('User decoded in callback:', user);
@@ -194,6 +192,7 @@ if (!isProduction) {
 }
 
 function emailAuthorized(email) {
+  if (!Array.isArray(authorized_users)) throw 'authorized_users is not an array (probably not initialized correctly).'
   return authorized_users.indexOf(email) !== -1;
 }
 
