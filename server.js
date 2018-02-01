@@ -39,11 +39,10 @@ app.use(cookieParser());
 // Sets the server path to /dist
 app.use(express.static(distPath));
 
-
-// GET Route
+// GET Route handles application view layer
 app.get('*', renderAdminView);
 
-// POST Routes
+// POST Routes handle SQS data
 app.post('/update-metadata', handleSqsDataProcessing(sqsClient, 'update'));
 app.post('/transfer-metadata', handleSqsDataProcessing(sqsClient, 'transfer'));
 
