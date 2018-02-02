@@ -49,6 +49,7 @@ app.use(passport.session());
 
 // Set up list of authorized users
 let authorized_users = undefined;
+//   Create and run a function which will periodically download and process the authorized.json file
 (function retrieve_authorized_users() {
   new AWS.S3().getObject(
     {Bucket: 'nypl-platform-admin', Key: 'authorization.json'}, 

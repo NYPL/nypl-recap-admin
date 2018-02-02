@@ -17,6 +17,28 @@ the app, as set out below.
 
 
 ### Development Mode
+
+#### Authentication
+In order to use the SSO authentication your browser needs to talk to your app on an `nypl.org` address (let's say
+`local.nypl.org`) on port `80`. To make `local.nypl.org` a local alias for your computer (on a Linux, Mac or other *nix OS)
+you need to add the following line to your `/etc/hosts` file:
+
+```
+127.0.0.1	local.nypl.org
+```
+
+You only need to do that once (well, maybe again if you upgrade your OS — that _might_ update your `hosts` file).
+
+In order to get your app to listen on port `80` you will need to make sure the following command is running whenever you run your node server:
+
+```sh
+$ sudo ssh -N -L 80:localhost:3001 `whoami`@localhost
+```
+
+You will be prompted for your password.
+
+
+#### Running Webpack
 We use Webpack to fire off a hot-reloading development server. This allows for continuous code changes without the need to refresh your browser.
 
 ```sh
