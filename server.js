@@ -9,8 +9,8 @@ import passport from 'passport';
 import { OAuth2Strategy } from 'passport-oauth';
 import { ensureLoggedIn } from 'connect-ensure-login';
 import jwt_decode from 'jwt-decode';
+import uuidv4 from 'uuid/v4';
 const AWS = require('aws-sdk');
-
 // App Route Handling
 import { initializeTokenAuth } from './src/server/routes/auth';
 import { updateMetadata } from './src/server/routes/api';
@@ -39,7 +39,7 @@ app.set('port', process.env.PORT || appConfig.port);
 app.use(cookieParser());
 // Set Global publicKey
 app.set('nyplPublicKey', appConfig.publicKey);
-app.use(session({ secret: '2aad5e41c30cab49515b6dbb903c01b1e0bf590667b25b60f534043c5b554e37' }));
+app.use(session({ secret: process.env.SESSION_SECRET || uuidv4() }));
 // Sets the server path to /dist
 app.use(express.static(distPath));
 // Use passport middleware for authentication
