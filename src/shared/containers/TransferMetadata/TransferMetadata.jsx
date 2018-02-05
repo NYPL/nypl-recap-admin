@@ -25,12 +25,21 @@ class TransferMetadata extends Component {
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
   }
 
+  /**
+  * @desc Handles executing the focus() function for the given fieldName React ref instance
+  * @param {string} fieldName - the ref string name
+  */
   focusOnField(fieldName) {
     if (this[fieldName]) {
       this[fieldName].focus();
     }
   }
 
+  /**
+  * @desc Handles deleting the passed state object property only if defined
+  * @param {string} field - the string name of the fieldErrors property
+  * @param {object} state - the current state object
+  */
   removeFieldError(field, state) {
     const currentState = state;
     // Only remove and update state existing field errors
@@ -39,6 +48,14 @@ class TransferMetadata extends Component {
     }
   }
 
+  /**
+  * @desc Handles setting the passed field object property only it has not been defined in the
+  * fieldErrors object
+  * @param {string} field - the string name of the fieldErrors property
+  * @param {object} state - the current state object
+  * @param {string} errorString - the string representation for the error field to be presented in
+  * the UI (default: Required field)
+  */
   setFieldError(field, state, errorString = 'Required field') {
     const currentState = state;
 
@@ -47,6 +64,12 @@ class TransferMetadata extends Component {
     }
   }
 
+  /**
+  * @desc Handles validating the given fieldName based on the validation rules for the type of input
+  * @param {string} fieldName - the string name of the input field
+  * @param {object} state - the current state object
+  * @param {boolean} focusOnError - flag utilized to execute focusOnField() if true (default: false)
+  */
   validateField(fieldName, state, focusOnError = false) {
     switch (fieldName) {
       case 'barcode':
@@ -85,6 +108,11 @@ class TransferMetadata extends Component {
     this.setState({ formFields: {...this.state.formFields, [name]: value} });
   }
 
+  /**
+  * @desc Handles updating the state based on the validation function executed in the setState
+  * anonymous function.
+  * @param {object} event - contains the current event context of the input field
+  */
   handleInputBlur(event) {
     const { target, type } = event;
     const name = target.name;
@@ -136,6 +164,9 @@ class TransferMetadata extends Component {
     }
   }
 
+  /**
+  * @desc Handles returning the correct DOM for the Form Submission API results
+  */
   renderFormSubmissionResults() {
     const { formResult } = this.state;
     let resultClass = 'nypl-form-success';
@@ -156,6 +187,9 @@ class TransferMetadata extends Component {
     );
   }
 
+  /**
+  * @desc Handles returning the correct DOM for the Transfer Metadata form
+  */
   renderTransferMetadataForm() {
     return (
       <form onSubmit={this.handleFormSubmit}>
