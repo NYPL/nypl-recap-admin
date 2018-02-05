@@ -68,6 +68,7 @@ class TransferMetadata extends Component {
         } else {
           this.removeFieldError(fieldName, state);
         }
+        break;
       default:
         break;
     }
@@ -78,7 +79,6 @@ class TransferMetadata extends Component {
   * @param {object} event - contains the current event context of the input field
   */
   handleInputChange(event) {
-    console.log('handleInputChange fired');
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
@@ -88,7 +88,6 @@ class TransferMetadata extends Component {
   handleInputBlur(event) {
     const { target, type } = event;
     const name = target.name;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
 
     // React pattern to handle asynchronous state changes
     this.setState(prevState => {
@@ -129,20 +128,32 @@ class TransferMetadata extends Component {
         action: type
       }).then(response => {
         console.log('Form Successful Response: ', response);
-
-        this.setState({
-          isFormProcessing: false,
-          formResult: { processed: true }
-        });
+        this.setState({...this.baseState, formResult: { processed: true } });
       }).catch(error => {
         console.log('Form Error Response: ', error);
-
-        this.setState({
-          isFormProcessing: false,
-          formResult: { processed: false, response: error }
-        });
+        this.setState({...this.state, formResult: { processed: false, response: error } });
       });
     }
+  }
+
+  renderFormSubmissionResults() {
+    const { formResult } = this.state;
+    let resultClass = 'nypl-form-success';
+    let resultHeading = 'Success!';
+    let resultText = 'Your form submission has been accepted';
+
+    if (formResult && (formResult.processed === false || !isEmpty(formResult.response))) {
+      resultClass = 'nypl-form-error';
+      resultHeading = 'Error!';
+      resultText = 'The API has encountered an error, please try again later.';
+    }
+
+    return !isEmpty(formResult) && (
+      <div className={resultClass}>
+        <h2>{resultHeading}</h2>
+        <p>{resultText}</p>
+      </div>
+    );
   }
 
   renderTransferMetadataForm() {
@@ -154,7 +165,7 @@ class TransferMetadata extends Component {
             id="barcode"
             name="barcode"
             type="text"
-            value={this.state.barcode}
+            value={this.state.formFields.barcode}
             onChange={this.handleInputChange}
             onBlur={this.handleInputBlur}
             ref={(input) => { this.barcode = input; }}
@@ -166,7 +177,7 @@ class TransferMetadata extends Component {
             id="bibRecordNumber"
             name="bibRecordNumber"
             type="text"
-            value={this.state.bibRecordNumber}
+            value={this.state.formFields.bibRecordNumber}
             onChange={this.handleInputChange}
             onBlur={this.handleInputBlur}
             ref={(input) => { this.bibRecordNumber = input; }}
@@ -178,7 +189,7 @@ class TransferMetadata extends Component {
             id="protectCGD"
             name="protectCGD"
             type="checkbox"
-            checked={this.state.protectCGD}
+            checked={this.state.formFields.protectCGD}
             onChange={this.handleInputChange}
           />
         </div>
@@ -193,6 +204,7 @@ class TransferMetadata extends Component {
     return (
       <div className={this.props.className} id={this.props.id}>
         <h2>Transfer Barcode & Update Metadata</h2>
+        {this.renderFormSubmissionResults()}
         {this.renderTransferMetadataForm()}
       </div>
     );
