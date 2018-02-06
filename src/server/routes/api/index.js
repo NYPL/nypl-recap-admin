@@ -17,7 +17,7 @@ function getSqsPayload(object) {
   };
 }
 
-function isSqsDataValid(params, type) {
+function validateSqsData(params, type) {
   const { barcodes, protectCGD, action, email, bibRecordNumber } = params;
   const statusCode = 400;
   const errorsList = [];
@@ -65,7 +65,7 @@ export function handleSqsDataProcessing(sqsClient, type) {
   return (req, res, next) => {
     const { api } = config.sqs;
     const params = req.body;
-    const validatedSqsData = isSqsDataValid(params, type);
+    const validatedSqsData = validateSqsData(params, type);
 
     if (!sqsClient) {
       return res.status(500).json({
