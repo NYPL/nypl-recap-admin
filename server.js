@@ -10,11 +10,11 @@ import { OAuth2Strategy } from 'passport-oauth';
 import { ensureLoggedIn } from 'connect-ensure-login';
 import jwt_decode from 'jwt-decode';
 import uuidv4 from 'uuid/v4';
-const AWS = require('aws-sdk');
 // App Route Handling
 import { initializeTokenAuth } from './src/server/routes/auth';
 import { updateMetadata } from './src/server/routes/api';
 import { renderAdminView } from './src/server/routes/render';
+import { isEmailAuthorized, repeatRetrieveAuthorizedUsers, verifyUserFromToken } from './src/server/routes/auth'; 
 // App Config File
 import appConfig from './config/appConfig.js';
 // Global Configuration Variables
@@ -22,7 +22,6 @@ const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
 const viewsPath = path.resolve(rootPath, 'src/server/views');
 const isProduction = process.env.NODE_ENV === 'production';
-const refreshAuthorizedUsersIntervalMs = 600000;
 /* Express Server Configurations
  * -----------------------------
 */
@@ -46,31 +45,8 @@ app.use(express.static(distPath));
 app.use(passport.initialize());
 // use passport sessions
 app.use(passport.session());
-
 // Set up list of authorized users
-let authorized_users = undefined;
-//   Create and run a function which will periodically download and process the authorized.json file
-(function retrieve_authorized_users() {
-  new AWS.S3().getObject(
-    {Bucket: 'nypl-platform-admin', Key: 'authorization.json'}, 
-    (s3_err, data) => { 
-      try { 
-        if (s3_err) throw s3_err;
-
-        authorized_users = JSON.parse(data.Body.toString())
-        console.log('Retrieved authorization data.');
-
-      } catch(err) {
-        // Log the error, but hopefully we have an older value of authorized_users 
-        console.log('Problem retrieving authorization list from S3: ', err.message);
-
-      } finally {
-        // Even if we've had an error, optimistically expect things will resolve at some point
-        setTimeout(retrieve_authorized_users, refreshAuthorizedUsersIntervalMs);
-      }
-    }
-  )
-})()
+repeatRetrieveAuthorizedUsers()
 
 // Setup OAuth2 authentication
 // Protect all routes, except the auth provider and callback
@@ -94,12 +70,14 @@ passport.use('provider', new OAuth2Strategy(
   },
   function(accessToken, refreshToken, profile, done) {
     
-    const {email, name, user_id} = jwt_decode(accessToken);
-   
-    if (!email || !emailAuthorized(email)) return done(null, false)
+    const user = verifyUserFromToken(accessToken);
 
-    const user = {email, name, user_id};
-    console.log('User decoded in callback:', user);
+    if (user) {
+      console.log('User decoded in callback:', user);
+    } else {
+      // verifyUserFromToken will return false if it couldn't decode a valid user
+      console.log('Could not decode user from token');
+    }
     
     done(null, user);
   }
@@ -196,10 +174,5 @@ if (!isProduction) {
 			colors.cyan(`localhost:${appConfig.webpackDevServerPort}`)
 		);
   });
-}
-
-function emailAuthorized(email) {
-  if (!Array.isArray(authorized_users)) throw 'authorized_users is not an array (probably not initialized correctly).'
-  return authorized_users.indexOf(email) !== -1;
 }
 
