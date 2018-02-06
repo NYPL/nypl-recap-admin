@@ -18,55 +18,73 @@ function getSqsPayload(object) {
 }
 
 function isSqsDataValid(params, type) {
-  const { barcodes, protectCGD, action, email } = params;
-  if (type === 'transfer') {
-    const { bibRecordNumber } = params;
+  const { barcodes, protectCGD, action, email, bibRecordNumber } = params;
+  const statusCode = 400;
+  const errorsList = [];
 
-    if (isEmpty(barcodes) || isEmpty(bibRecordNumber) || typeof protectCGD !== 'boolean' || isEmpty(action) || isEmpty(email)) {
-      return false;
-    }
+  if (isEmpty(params)) {
+    errorsList.push({
+      parameters: 'The required POST parameters are undefined'
+    });
   }
 
-  if (type === 'update') {
-    if (isEmpty(barcodes) || typeof protectCGD !== 'boolean' || isEmpty(action) || isEmpty(email)) {
-      return false;
-    }
+  if (isEmpty(barcodes)) {
+    errorsList.push({
+      barcodes: 'The barcodes required array parameter is not defined or empty'
+    });
   }
 
-  return true;
+  if (typeof protectCGD !== 'boolean') {
+    errorsList.push({
+      protectCGD: 'The protectCGD required boolean parameter is not defined'
+    });
+  }
+
+  if (isEmpty(action)) {
+    errorsList.push({
+      action: 'The action required string parameter is not defined'
+    });
+  }
+
+  if (isEmpty(email)) {
+    errorsList.push({
+      email: 'The email required string parameter is not defined'
+    });
+  }
+
+  if (type === 'transfer' && isEmpty(bibRecordNumber)) {
+    errorsList.push({
+      bibRecordNumber: 'The bibRecordNumber required string parameter is not defined'
+    });
+  }
+
+  return !isEmpty(errorsList) ? { isValid: false, parameters: errorsList } : { isValid: true };
 }
 
 export function handleSqsDataProcessing(sqsClient, type) {
   return (req, res, next) => {
     const { api } = config.sqs;
     const params = req.body;
+    const validatedSqsData = isSqsDataValid(params, type);
 
     if (!sqsClient) {
-      return res.status(503).json({
-        error: 'SQS Client is not defined',
-        status: 503
+      return res.status(500).json({
+        error: 'Error: SQS Client is not defined; cannot initialize client instance',
+        status: 500
       });
     }
 
-    if (!type || type === '') {
-      return res.status(503).json({
-        error: 'SQS transaction type is undefined',
-        status: 503
+    if (isEmpty(type)) {
+      return res.status(500).json({
+        error: 'Error: SQS transaction type is undefined',
+        status: 500
       });
     }
 
-    if (!params) {
+    if (validatedSqsData.isValid === false) {
       return res.status(400).json({
-        error: 'Error: SQS payload data is undefined',
-        status: 400
-      });
-    }
-
-
-    if (isSqsDataValid(params, type) === false) {
-      return res.status(400).json({
-        error: 'Error: SQS required payload properties are invalid',
-        debugInfo: { payload: params, type: type },
+        error: 'Error: SQS required payload properties are undefined or invalid; check debugInfo for more information',
+        debugInfo: { payload: validatedSqsData.parameters, type: type },
         status: 400
       });
     }
