@@ -4,9 +4,10 @@ import cookieParser from 'cookie-parser';
 import compress from 'compression';
 import bodyParser from 'body-parser';
 import colors from 'colors';
+import aws from 'aws-sdk';
 // App Route Handling
 import { initializeTokenAuth } from './src/server/routes/auth';
-import { updateMetadata } from './src/server/routes/api';
+import { handleSqsDataProcessing } from './src/server/routes/api';
 import { renderAdminView } from './src/server/routes/render';
 // App Config File
 import appConfig from './config/appConfig.js';
@@ -15,6 +16,11 @@ const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
 const viewsPath = path.resolve(rootPath, 'src/server/views');
 const isProduction = process.env.NODE_ENV === 'production';
+const { sqs } = appConfig;
+
+// AWS SQS Configuration
+aws.config.update({ region: sqs.region });
+const sqsClient = new aws.SQS({ apiVersion: '2012-11-05' });
 
 /* Express Server Configurations
  * -----------------------------
@@ -32,12 +38,13 @@ app.set('port', process.env.PORT || appConfig.port);
 app.use(cookieParser());
 // Sets the server path to /dist
 app.use(express.static(distPath));
-// Establishes all application routes handled by react-router
-app.get('*', renderAdminView);
-//app.get('*', initializeTokenAuth, getPatronData, renderAdminView);
 
-// Handle sending message to SQS for UpdateMetadata Form
-app.post('/update-metadata', updateMetadata);
+// GET Route handles application view layer
+app.get('*', renderAdminView);
+
+// POST Routes handle SQS data
+app.post('/update-metadata', handleSqsDataProcessing(sqsClient, 'update'));
+app.post('/transfer-metadata', handleSqsDataProcessing(sqsClient, 'transfer'));
 
 const server = app.listen(app.get('port'), (error) => {
   if (error) {
