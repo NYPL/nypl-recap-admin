@@ -1,0 +1,41 @@
+language: node_js
+node_js:
+- '8'
+cache:
+  directories:
+  - node_modules
+install: npm install -s
+before_script: echo 'No unit test coverage for NYPL ReCAP Admin; Will attempt to build
+  distribution assets as a safety'
+script: npm run dist
+before_deploy: echo 'Successfully built distribution assets for NYPL ReCAP Admin;
+  Preparing to deploy NYPL ReCAP Admin to AWS'
+deploy:
+- provider: elasticbeanstalk
+  skip_cleanup: true
+  access_key_id: "$aws_access_key_id_production"
+  secret_access_key: "$aws_secret_access_key_production"
+  region: us-east-1
+  app: "$aws_app_name"
+  env: "$aws_environment_name_production"
+  bucket_name: elasticbeanstalk-us-east-1-946183545209
+  bucket_path: "$aws_app_name"
+  on:
+    repo: NYPL/nypl-recap-admin
+    branch: master
+- provider: elasticbeanstalk
+  skip_cleanup: true
+  access_key_id: "$aws_access_key_id_development"
+  secret_access_key: "$aws_secret_access_key_development"
+  region: us-east-1
+  app: "$aws_app_name"
+  env: "$aws_environment_name_development"
+  bucket_name: elasticbeanstalk-us-east-1-224280085904
+  bucket_path: "$aws_app_name"
+  on:
+    repo: NYPL/nypl-recap-admin
+    branch: development
+after_deploy: echo 'Successfully executed deploy trigger for NYPL ReCAP Admin on AWS'
+env:
+  global:
+    secure: oCGOhA2u058hOzBoIP7kuoV21zImFbtd2pjcCtODRh4yN24NiL2s58kzNVLvEn3ccbvG3WDUYaO+3hvMCWN2ySG3lxTOwQ9wtB73nOCdJ9j6yupv1EkYrGiyZwxCY0MO1pmlNlXLQ+TFKYsZTy3lG6Qm6i705SuaQh1+TMf1axRVsnpapZH5XB1dAIYcUcxeTaPLJZ+FNKkckmms20J/+l7Si0LT6pefax7Ip3jk0rJWSVMJn/NTVvdNcw6sraekOq6WoNVGZZKOdw4dls9oYA8DKDdHl7KlKKZ28vEzn5FMdIvqeHypE7ySD1SZayGVlebCeA0YuOHpRD779u9PMevbrc5+faXxq++eodRLb2U2QKPLD3eIm11tUGY+zFy8QpGECZmkZvGgGXBfLiAJVfTYlztOrW3V9i9ZqvEiAGUI86PxWjGYXDlEh/uZtx/Z9gngPqqgw7BEhUOODjdRGhquHZijT69GiWA2BEn208+sIDliRPnfPe7X+W/kH2ae30g9YIHEscBXopUDKNNzuyK6OG1nhpYJ9QjoTQgythxalQaRgh2PNnjhxsPD2/i9/qFDOY5siWs2rUvWCfpaw++e35yDCVUh1PIK5XygrnsWH3aU7YAyNgEbEGaa4LKx05B8qq92g12sM23tg1rjkqt0PwspDpQB3Tnh+tPf7Ik=
