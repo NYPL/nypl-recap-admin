@@ -4,6 +4,7 @@ import axios from  'axios';
 import isEmpty from 'lodash/isEmpty';
 import forIn from 'lodash/forIn';
 import { isBarcodeValid, isBibRecordNumberValid } from '../../utils/ValidationUtils';
+import FormField from '../../components/FormField/FormField';
 
 class TransferMetadata extends Component {
   constructor(props) {
@@ -13,16 +14,24 @@ class TransferMetadata extends Component {
       formFields: {
         barcode: '',
         bibRecordNumber: '',
-        protectCGD: false,
+        protectCGD: false
       },
       fieldErrors: {},
-      isFormProcessing: false,
       formResult: {}
     };
     this.baseState = this.state;
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleInputBlur = this.handleInputBlur.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    // Update the inert flag when the form is in a processing/loading state
+    if (nextProps.isFormProcessing === true) {
+      this.transferForm.inert = true;
+    } else {
+      this.transferForm.inert = false;
+    }
   }
 
   /**
@@ -102,6 +111,7 @@ class TransferMetadata extends Component {
   * @param {object} event - contains the current event context of the input field
   */
   handleInputChange(event) {
+    console.log(event.target);
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
@@ -146,7 +156,8 @@ class TransferMetadata extends Component {
         }
       } = this.state;
 
-      this.setState({ isFormProcessing: true });
+      // Update the Parent Container Loading State
+      this.props.setApplicationLoadingState(true);
 
       return axios.post('/transfer-metadata', {
         barcodes: [barcode],
@@ -156,9 +167,11 @@ class TransferMetadata extends Component {
         action: type
       }).then(response => {
         console.log('Form Successful Response: ', response);
+        this.props.setApplicationLoadingState(false);
         this.setState({...this.baseState, formResult: { processed: true } });
       }).catch(error => {
         console.log('Form Error Response: ', error);
+        this.props.setApplicationLoadingState(false);
         this.setState({...this.state, formResult: { processed: false, response: error } });
       });
     }
@@ -192,43 +205,51 @@ class TransferMetadata extends Component {
   */
   renderTransferMetadataForm() {
     return (
-      <form onSubmit={this.handleFormSubmit}>
-        <div>
-          <label htmlFor="barcode">Barcode</label>
+      <form onSubmit={this.handleFormSubmit} ref={(elem) => { this.transferForm = elem; }}>
+        <FormField
+          className="nypl-text-field"
+          id="barcode"
+          type="text"
+          label="Barcode"
+          fieldName="barcode"
+          instructionText="Please enter a 14 digit barcode"
+          value={this.state.formFields.barcode}
+          handleOnChange={this.handleInputChange}
+          handleOnBlur={this.handleInputBlur}
+          errorField={this.state.fieldErrors.barcode}
+          fieldRef={(input) => { this.barcode = input; }}
+          isRequired
+        />
+        <FormField
+          className="nypl-text-field"
+          id="bibRecordNumber"
+          type="text"
+          label="Bib Record Number"
+          fieldName="bibRecordNumber"
+          instructionText="Please enter a valid bib record number"
+          value={this.state.formFields.bibRecordNumber}
+          handleOnChange={this.handleInputChange}
+          handleOnBlur={this.handleInputBlur}
+          errorField={this.state.fieldErrors.bibRecordNumber}
+          fieldRef={(input) => { this.bibRecordNumber = input; }}
+          isRequired
+        />
+        <FormField
+          className="nypl-generic-checkbox"
+          id="protectCGD"
+          type="checkbox"
+          label="Protect CGD"
+          fieldName="protectCGD"
+          checked={this.state.formFields.protectCGD}
+          handleOnChange={this.handleInputChange}
+        />
+        <div className="nypl-submit-button-wrapper">
           <input
-            id="barcode"
-            name="barcode"
-            type="text"
-            value={this.state.formFields.barcode}
-            onChange={this.handleInputChange}
-            onBlur={this.handleInputBlur}
-            ref={(input) => { this.barcode = input; }}
+            className="nypl-primary-button"
+            type="submit"
+            value="Submit"
+            disabled={this.props.isFormProcessing}
           />
-        </div>
-        <div>
-          <label htmlFor="bibRecordNumber">Bib Record Number</label>
-          <input
-            id="bibRecordNumber"
-            name="bibRecordNumber"
-            type="text"
-            value={this.state.formFields.bibRecordNumber}
-            onChange={this.handleInputChange}
-            onBlur={this.handleInputBlur}
-            ref={(input) => { this.bibRecordNumber = input; }}
-          />
-        </div>
-        <div>
-          <label htmlFor="protectCGD">Protect CGD</label>
-          <input
-            id="protectCGD"
-            name="protectCGD"
-            type="checkbox"
-            checked={this.state.formFields.protectCGD}
-            onChange={this.handleInputChange}
-          />
-        </div>
-        <div>
-          <input type="submit" value="Submit" />
         </div>
       </form>
     );
@@ -247,7 +268,9 @@ class TransferMetadata extends Component {
 
 TransferMetadata.propTypes = {
   className: PropTypes.string,
-  id: PropTypes.string
+  id: PropTypes.string,
+  isFormProcessing: PropTypes.bool,
+  setApplicationLoadingState: PropTypes.func
 };
 
 TransferMetadata.defaultProps = {

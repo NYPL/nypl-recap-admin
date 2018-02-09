@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import isEqual from 'lodash/isEqual';
 import isEmpty from 'lodash/isEmpty';
+import FormField from '../../components/FormField/FormField';
 
 class UpdateMetadata extends Component {
   constructor(props) {
@@ -12,13 +13,21 @@ class UpdateMetadata extends Component {
       barcodes: [],
       incorrect_barcodes: [],
       protectCGD: false,
-      isFormProcessing: false,
       formResult: {}
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleInputBlur = this.handleInputBlur.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    // Update the inert flag when the form is in a processing/loading state
+    if (nextProps.isFormProcessing === true) {
+      this.updateForm.inert = true;
+    } else {
+      this.updateForm.inert = false;
+    }
   }
 
   /**
@@ -102,7 +111,7 @@ class UpdateMetadata extends Component {
 
     if (this.areFormFieldsValid(this.state)) {
       const { type, barcodes, protectCGD } = this.state;
-      this.setState({ isFormProcessing: true });
+      this.props.setApplicationLoadingState(true);
 
       return axios.post('/update-metadata', {
         barcodes,
@@ -112,17 +121,13 @@ class UpdateMetadata extends Component {
       }).then(response => {
         console.log('Form Successful Response: ', response);
 
-        this.setState({
-          isFormProcessing: false,
-          formResult: { processed: true }
-        });
+        this.props.setApplicationLoadingState(false);
+        this.setState({ formResult: { processed: true } });
       }).catch(error => {
         console.log('Form Error Response: ', error);
 
-        this.setState({
-          isFormProcessing: false,
-          formResult: { processed: false, response: error }
-        });
+        this.props.setApplicationLoadingState(false);
+        this.setState({ formResult: { processed: false, response: error } });
       });
     }
   }
@@ -139,52 +144,64 @@ class UpdateMetadata extends Component {
   }
 
   /**
+  * @desc Handles returning the correct DOM for the Form Submission API results
+  */
+  renderFormSubmissionResults() {
+    const { formResult } = this.state;
+    let resultClass = 'nypl-form-success';
+    let resultHeading = 'Success!';
+    let resultText = 'Your form submission has been accepted';
+
+    if (formResult && (formResult.processed === false || !isEmpty(formResult.response))) {
+      resultClass = 'nypl-form-error';
+      resultHeading = 'Error!';
+      resultText = 'The API has encountered an error, please try again later.';
+    }
+
+    return !isEmpty(formResult) && (
+      <div className={resultClass}>
+        <h2>{resultHeading}</h2>
+        <p>{resultText}</p>
+      </div>
+    );
+  }
+
+  /**
   * @desc Handles returning the correct DOM for the Update Metadata form
   */
   renderUpdateMetadataForm() {
-    const areBarcodesInvalid = (this.state.incorrect_barcodes.length > 0);
-    const barcodesInvalidClass = areBarcodesInvalid ? 'error' : '';
+    const barcodesError = (this.state.incorrect_barcodes.length > 0) ?
+      'The barcode(s) are incorrect, please verify that each barcode is 14 numerical digits' : '';
+
     return (
-      <form onSubmit={this.handleFormSubmit}>
-        {
-          this.state.formResult.processed === true &&
-          <div className="response-success">
-            Your entry was submitted successfully
-          </div>
-        }
-        {
-          this.state.formResult.processed === false &&
-          <div className="response-failure">
-            There was an error with your submission
-          </div>
-        }
-        <div>
-          <label htmlFor="barcodes">Barcode(s)</label>
-          <textarea
-            className={`barcodes ${barcodesInvalidClass}`}
-            id="barcodes"
-            name="barcodes"
-            onBlur={this.handleInputBlur}
-          />
-          {
-            areBarcodesInvalid &&
-            <div className="field-errors">
-              <p>The remaining barcode(s) are incorrect, please verify that each barcode is 14 numerical digits</p>
-            </div>
-          }
-        </div>
-        <div>
-          <label htmlFor="protectCGD">Protect CGD</label>
+      <form onSubmit={this.handleFormSubmit} ref={(elem) => { this.updateForm = elem; }}>
+        <FormField
+          className="nypl-text-area-with-label"
+          id="barcodes"
+          label="Barcode(s)"
+          fieldName="barcodes"
+          type="textarea"
+          handleOnBlur={this.handleInputBlur}
+          errorField={barcodesError}
+          fieldRef={(input) => { this.barcodes = input; }}
+          isRequired
+        />
+        <FormField
+          className="nypl-generic-checkbox"
+          id="protectCGD"
+          type="checkbox"
+          label="Protect CGD"
+          fieldName="protectCGD"
+          checked={this.state.protectCGD}
+          handleOnChange={this.handleInputChange}
+        />
+        <div className="nypl-submit-button-wrapper">
           <input
-            id="protectCGD"
-            name="protectCGD"
-            type="checkbox"
-            checked={this.state.protectCGD}
-            onChange={this.handleInputChange}
+            className="nypl-primary-button"
+            type="submit"
+            value="Submit"
+            disabled={this.props.isFormProcessing}
           />
-        </div>
-        <div>
-          <input type="submit" value="Submit" />
         </div>
       </form>
     );
@@ -194,6 +211,7 @@ class UpdateMetadata extends Component {
     return (
       <div className={this.props.className} id={this.props.id}>
         <h2>Update SCSB Metadata</h2>
+        {this.renderFormSubmissionResults()}
         {this.renderUpdateMetadataForm()}
       </div>
     );
@@ -202,7 +220,9 @@ class UpdateMetadata extends Component {
 
 UpdateMetadata.propTypes = {
   className: PropTypes.string,
-  id: PropTypes.string
+  id: PropTypes.string,
+  isFormProcessing: PropTypes.bool,
+  setApplicationLoadingState: PropTypes.func
 };
 
 UpdateMetadata.defaultProps = {

@@ -29,6 +29,7 @@
     "webpack-dev-server": "2.7.1"
   },
   "dependencies": {
+    "@nypl/design-toolkit": "0.1.32",
     "aws-sdk": "^2.185.0",
     "axios": "0.14.0",
     "babel-core": "6.26.0",
@@ -59,6 +60,7 @@
     "react-router-dom": "4.2.2",
     "sass-loader": "4.0.2",
     "style-loader": "0.13.1",
-    "webpack": "2.7.0"
+    "webpack": "2.7.0",
+    "wicg-inert": "1.1.6"
   }
 }
