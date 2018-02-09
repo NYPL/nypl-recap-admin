@@ -8,15 +8,13 @@ import colors from 'colors';
 import passport from 'passport';
 import { OAuth2Strategy } from 'passport-oauth';
 import { ensureLoggedIn } from 'connect-ensure-login';
-import jwt_decode from 'jwt-decode';
 import uuidv4 from 'uuid/v4';
 // App Route Handling
-import { initializeTokenAuth } from './src/server/routes/auth';
 import { updateMetadata } from './src/server/routes/api';
 import { renderAdminView } from './src/server/routes/render';
-import { isEmailAuthorized, repeatRetrieveAuthorizedUsers, verifyUserFromToken } from './src/server/routes/auth'; 
+import { isUserAuthorized, repeatRetrieveAuthorizedUsers, verifySessionFromToken } from './src/server/routes/auth';
 // App Config File
-import appConfig from './config/appConfig.js';
+import appConfig from './config/appConfig';
 // Global Configuration Variables
 const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
@@ -46,11 +44,11 @@ app.use(passport.initialize());
 // use passport sessions
 app.use(passport.session());
 // Set up list of authorized users
-repeatRetrieveAuthorizedUsers()
+repeatRetrieveAuthorizedUsers();
 
 // Setup OAuth2 authentication
 // Protect all routes, except the auth provider and callback
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
   if (req.originalUrl.match(/(?:\/auth\/provider|callback)(?:\?.*)?$/)) {
     console.info('not checking logged in status for request url:', req.originalUrl);
     return next();
@@ -64,39 +62,43 @@ passport.use('provider', new OAuth2Strategy(
     authorizationURL: 'https://isso.nypl.org/oauth/authorize',
     tokenURL: 'https://isso.nypl.org/oauth/token',
     clientID: 'platform_admin',
-    clientSecret: process.env.ISSO_CLIENT_SECRET, 
+    clientSecret: process.env.ISSO_CLIENT_SECRET,
     callbackURL: 'http://local.nypl.org/callback',
-    state: true
+    state: true,
+    passReqToCallback: true,
   },
-  function(accessToken, refreshToken, profile, done) {
-    
-    const user = verifyUserFromToken(accessToken);
+  (req, accessToken, refreshToken, profile, done) => {
+    const { user, expiry } = verifySessionFromToken(accessToken);
 
     if (user) {
       console.log('User decoded in callback:', user);
+      app.set('user', user);
+
+      // Date will accept epoch time in ms
+      req.session.cookie.expires = new Date(expiry * 1000);
     } else {
       // verifyUserFromToken will return false if it couldn't decode a valid user
       console.log('Could not decode user from token');
     }
-    
+
     done(null, user);
-  }
+  },
 ));
 
 // Serializer and deserializer for app user
-passport.serializeUser(function(user, done) {
+passport.serializeUser((user, done) => {
   console.log('Serializing', user);
-  done(null, user.user_id);
+  done(null, user.userId);
 });
-passport.deserializeUser(function(user_id, done) {
-  console.log('Deserializing', user_id);
-  done(null, {user_id});
+passport.deserializeUser((userId, done) => {
+  console.log('Deserializing', userId);
+  done(null, { userId });
 });
 
 // Redirect the user to the OAuth 2.0 provider for authentication.  When
 // complete, the provider will redirect the user back to the application at
 //     /auth/provider/callback
-app.get('/auth/provider', passport.authenticate('provider', {scope: ['openid', 'login:staff']}));
+app.get('/auth/provider', passport.authenticate('provider', { scope: ['openid', 'login:staff'] }));
 
 // The OAuth 2.0 provider has redirected the user back to the application.
 // Finish the authentication process by attempting to obtain an access
@@ -104,14 +106,22 @@ app.get('/auth/provider', passport.authenticate('provider', {scope: ['openid', '
 // Otherwise, authentication has failed.
 app.get(
   '/callback',
-  passport.authenticate('provider', { failureRedirect: '/auth/provider'}),
-  (req, res) => res.redirect(req.session.returnTo) 
+  passport.authenticate('provider', { failureRedirect: '/auth/provider' }),
+  (req, res) => res.redirect(req.session.returnTo),
 );
 
+// Check whether user is authorized
+app.use((req, res, next) => {
+  const user = app.get('user');
+
+  if (user && !isUserAuthorized(user)) {
+    res.status(403).send('Sorry, this email is not authorized to use the Platform Admin app');
+  }
+  next();
+});
 
 // Establishes all application routes handled by react-router
 app.get('*', renderAdminView);
-//app.get('*', initializeTokenAuth, getPatronData, renderAdminView);
 
 // Handle sending message to SQS for UpdateMetadata Form
 app.post('/update-metadata', updateMetadata);
@@ -136,7 +146,7 @@ const gracefulShutdown = () => {
     console.log('Closed out remaining connections.');
     process.exit(0);
   });
-  // if after 
+  // if after
   setTimeout(() => {
     console.error('Could not close connections in time, forcefully shutting down');
     process.exit();
