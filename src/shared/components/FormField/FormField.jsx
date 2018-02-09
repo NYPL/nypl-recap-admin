@@ -122,8 +122,7 @@ FormField.propTypes = {
 FormField.defaultProps = {
   className: '',
   value: '',
-  isRequired: false,
-  //errorState: {},
+  isRequired: false
 };
 
 export default FormField;
