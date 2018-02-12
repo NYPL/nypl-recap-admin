@@ -63,6 +63,24 @@ $ npm run dist
 $ APP_ENV=production npm start:production
 ```
 
+## SQS
+### AWS Configuration
+The AWS SQS Client needs the following `ENV` variables to successful post data to SQS:
+* `AWS_SQS_API_URL`: SQS API url retrievable via the AWS console
+* `AWS_REGION`: AWS region, default: `us-east-1`
+
+### Payload Structure
+The following is the current data payload for sending form submissions to SQS:
+```
+{
+  "barcodes": [], <array of numerical 14 digit barcode strings>
+  "userEmail": "foo@example.com", <string>
+  "protectCGD": true || false, <boolean>
+  "action": "refile || update || transfer",  <string>
+  "bibRecordNumber": "b19192778x" <string> Only required on transfer, starts with the letter b followed by 8 numerical digits followed by one character which could be a numerical digit or the letter x
+}
+```
+
 ## GIT Workflow
 We follow a [feature-branch](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow) workflow. If you need to introduce/update the application code, you `SHOULD`:
 

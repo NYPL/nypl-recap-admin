@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { renderRoutes } from 'react-router-config';
-import SidebarNavigation from '../SidebarNavigation/SidebarNavigation';
+import SidebarNavigation from '../../components/SidebarNavigation/SidebarNavigation';
 
 class ApplicationContainer extends Component {
   render() {

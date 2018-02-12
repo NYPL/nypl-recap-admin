@@ -54,7 +54,8 @@
     }
 
     input[type='text'] {
-      flex: 2;
+      order: 2;
+      flex: 1 1 auto;
       padding: 5px;
     }
 

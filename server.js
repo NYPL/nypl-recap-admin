@@ -11,6 +11,9 @@ import { ensureLoggedIn } from 'connect-ensure-login';
 import uuidv4 from 'uuid/v4';
 // App Route Handling
 import { updateMetadata } from './src/server/routes/api';
+import aws from 'aws-sdk';
+// App Route Handling
+import { handleSqsDataProcessing } from './src/server/routes/api';
 import { renderAdminView } from './src/server/routes/render';
 import { isUserAuthorized, repeatRetrieveAuthorizedUsers, verifySessionFromToken } from './src/server/routes/auth';
 // App Config File
@@ -20,6 +23,12 @@ const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
 const viewsPath = path.resolve(rootPath, 'src/server/views');
 const isProduction = process.env.NODE_ENV === 'production';
+const { sqs } = appConfig;
+
+// AWS SQS Configuration
+aws.config.update({ region: sqs.region });
+const sqsClient = new aws.SQS({ apiVersion: '2012-11-05' });
+
 /* Express Server Configurations
  * -----------------------------
 */
@@ -120,11 +129,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Establishes all application routes handled by react-router
+// GET Route handles application view layer
 app.get('*', renderAdminView);
 
-// Handle sending message to SQS for UpdateMetadata Form
-app.post('/update-metadata', updateMetadata);
+// POST Routes handle SQS data
+app.post('/update-metadata', handleSqsDataProcessing(sqsClient, 'update'));
+app.post('/transfer-metadata', handleSqsDataProcessing(sqsClient, 'transfer'));
 
 const server = app.listen(app.get('port'), (error) => {
   if (error) {
