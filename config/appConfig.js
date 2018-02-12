@@ -14,13 +14,15 @@ export default {
     api: process.env.AWS_SQS_API_URL || 'https://sqs.us-east-1.amazonaws.com/224280085904/scsb-item-update-app'
   },
   publicKey:
-		'-----BEGIN PUBLIC KEY-----\n' +
-		'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtmIMVmUnbwr/65MYmLGJ\n' +
-		'm4aDXd0AmYI/Ww2yRye4LR2fmB6qrgdyiidmR1qV86kS287MzfYBYoTEYYjDQI0f\n' +
-		'VLlH0es8ubifn0cM4hnwDnNJds3JYohen2OM+08qEsOCSIlsTJ2YDHNmUAMIiIRs\n' +
-		'ay1efUPq98iAUAZkDr/M6ytwh+Sa9xmaeXVjJxUu0E8sCrqFuuZ7qm8A0ljlncLv\n' +
-		'UCbulaUg9lKM8SPfaWu2O4Xr1YupmyIlYkWDzbqIZbpu8cv0nnNOonEOVckjwhMz\n' +
-		'M7lSsQ05AXR0VAsZzafkpcC/yFp2Dfa2ZsKJNv/TDmYGDQ6wHgtU51ZEVq48jBz9\n' +
-		'cQIDAQAB\n' +
-		'-----END PUBLIC KEY-----',
+    '-----BEGIN PUBLIC KEY-----\n' +
+    'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA44ilHg/PxcJYsISHMRyo\n' +
+    'xsmez178qZpkJVXg7rOMVTLZuf05an7Pl+lX4nw/rqcvGQDXyrimciLgLkWu00xh\n' +
+    'm6h6klTeJSNq2DgseF8OMw2olfuBKq1NBQ/vC8U0l5NJu34oSN4/iipgpovqAHHB\n' +
+    'GV4zDt0EWSXE5xpnBWi+w1NMAX/muB2QRfRxkkhueDkAmwKvz5MXJPay7FB/WRjf\n' +
+    '+7r2EN78x5iQKyCw0tpEZ5hpBX831SEnVULCnpFOcJWMPLdg0Ff6tBmgDxKQBVFI\n' +
+    'Q9RrzMLTqxKnVVn2+hVpk4F/8tMsGCdd4s/AJqEQBy5lsq7ji1B63XYqi5fc1SnJ\n' +
+    'EQIDAQAB\n' +
+    '-----END PUBLIC KEY-----',
+  clientId: 'platform_admin',
+  clientSecret: process.env.ISSO_CLIENT_SECRET,
 };
