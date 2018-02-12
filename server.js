@@ -1,16 +1,23 @@
 import path from 'path';
 import express from 'express';
+import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import compress from 'compression';
 import bodyParser from 'body-parser';
 import colors from 'colors';
+import passport from 'passport';
+import { OAuth2Strategy } from 'passport-oauth';
+import { ensureLoggedIn } from 'connect-ensure-login';
+import uuidv4 from 'uuid/v4';
+// App Route Handling
+import { updateMetadata } from './src/server/routes/api';
 import aws from 'aws-sdk';
 // App Route Handling
-import { initializeTokenAuth } from './src/server/routes/auth';
 import { handleSqsDataProcessing } from './src/server/routes/api';
 import { renderAdminView } from './src/server/routes/render';
+import { isUserAuthorized, repeatRetrieveAuthorizedUsers, verifySessionFromToken } from './src/server/routes/auth';
 // App Config File
-import appConfig from './config/appConfig.js';
+import appConfig from './config/appConfig';
 // Global Configuration Variables
 const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
@@ -36,8 +43,91 @@ app.set('views', viewsPath);
 app.set('port', process.env.PORT || appConfig.port);
 // Set the CookieParser middleware
 app.use(cookieParser());
+// Set Global publicKey
+app.set('nyplPublicKey', appConfig.publicKey);
+app.use(session({ secret: process.env.SESSION_SECRET || uuidv4() }));
 // Sets the server path to /dist
 app.use(express.static(distPath));
+// Use passport middleware for authentication
+app.use(passport.initialize());
+// use passport sessions
+app.use(passport.session());
+// Set up list of authorized users
+repeatRetrieveAuthorizedUsers();
+
+// Setup OAuth2 authentication
+// Protect all routes, except the auth provider and callback
+app.use((req, res, next) => {
+  if (req.originalUrl.match(/(?:\/auth\/provider|callback)(?:\?.*)?$/)) {
+    console.info('not checking logged in status for request url:', req.originalUrl);
+    return next();
+  }
+  console.info('checking logged in status for request url:', req.originalUrl);
+  return ensureLoggedIn('/auth/provider')(req, res, next);
+});
+
+passport.use('provider', new OAuth2Strategy(
+  {
+    authorizationURL: 'https://isso.nypl.org/oauth/authorize',
+    tokenURL: 'https://isso.nypl.org/oauth/token',
+    clientID: appConfig.clientId,
+    clientSecret: appConfig.clientSecret,
+    callbackURL: 'http://local.nypl.org/callback',
+    state: true,
+    passReqToCallback: true,
+  },
+  (req, accessToken, refreshToken, profile, done) => {
+    const { user, expiry } = verifySessionFromToken(accessToken);
+
+    if (user) {
+      console.log('User decoded in callback:', user);
+      app.set('user', user);
+
+      // Date will accept epoch time in ms
+      req.session.cookie.expires = new Date(expiry * 1000);
+    } else {
+      // verifyUserFromToken will return false if it couldn't decode a valid user
+      console.log('Could not decode user from token');
+    }
+
+    done(null, user);
+  },
+));
+
+// Serializer and deserializer for app user
+passport.serializeUser((user, done) => {
+  console.log('Serializing', user);
+  done(null, user.userId);
+});
+passport.deserializeUser((userId, done) => {
+  console.log('Deserializing', userId);
+  done(null, { userId });
+});
+
+// Redirect the user to the OAuth 2.0 provider for authentication.  When
+// complete, the provider will redirect the user back to the application at
+//     /auth/provider/callback
+app.get('/auth/provider', passport.authenticate('provider', { scope: ['openid', 'login:staff'] }));
+
+// The OAuth 2.0 provider has redirected the user back to the application.
+// Finish the authentication process by attempting to obtain an access
+// token.  If authorization was granted, the user will be logged in.
+// Otherwise, authentication has failed.
+app.get(
+  '/callback',
+  passport.authenticate('provider', { failureRedirect: '/auth/provider' }),
+  (req, res) => res.redirect(req.session.returnTo),
+);
+
+// Check whether user is authorized
+app.use((req, res, next) => {
+  const user = app.get('user');
+
+  if (user && !isUserAuthorized(user)) {
+    res.status(403).send('Sorry, this email is not authorized to use the Platform Admin app');
+  }
+  next();
+});
 
 // GET Route handles application view layer
 app.get('*', renderAdminView);

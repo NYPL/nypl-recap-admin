@@ -9,16 +9,45 @@ $ npm install
 ```
 
 ## Running the Application
+### Authorization
+The app is configured to use isso.nypl.org for OAuth authentication. You will need to pass in the correct client secret
+as an environment variable for the authentication to work correctly. You can look up the secret in the parameter store;
+the clientID is `platform_admin`. Set the environment variable `ISSO_CLIENT_SECRET` to the client secret when running
+the app, as set out below.
+
+
 ### Development Mode
+
+#### Authentication
+In order to use the SSO authentication your browser needs to talk to your app on an `nypl.org` address (as otherwise
+isso.nypl.org will not authenticate it — let's use `local.nypl.org` as an example) on port `80` (as isso.nypl.org will always redirect to port 80). To make `local.nypl.org` a local alias for your computer (on a Linux, Mac or other *nix OS)
+you need to add the following line to your `/etc/hosts` file:
+
+```
+127.0.0.1	local.nypl.org
+```
+
+You only need to do that once (well, maybe again if you upgrade your OS — that _might_ update your `hosts` file).
+
+In order to get your app to listen on port `80` you will need to make sure the following command is running whenever you run your node server:
+
+```sh
+$ sudo ssh -N -L 80:localhost:3001 `whoami`@localhost
+```
+
+So open up a new terminal window, run that command (you will be prompted for your password) and leave it running as you
+start up the application server, as described below.
+
+#### Running Webpack
 We use Webpack to fire off a hot-reloading development server. This allows for continuous code changes without the need to refresh your browser.
 
 ```sh
-$ npm start // Starts localhost:3001 defaulting to the Development API
+$ ISSO_CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 defaulting to the Development API
 ```
 
 You can also set the `APP_ENV` variable which dictates what API environment to use as the main source.
 ```sh
-$ APP_ENV=development|qa|production npm start // Starts localhost:3001 with set APP_ENV
+$ APP_ENV=development|qa|production ISSO_CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 with set APP_ENV
 ```
 
 ### Production Mode
