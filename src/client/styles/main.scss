@@ -6,6 +6,19 @@
 @import 'components/loader';
 @import 'components/sidebar-navigation';
 
+.app-header {
+  background-color: $nypl-blue-tint;
+  border-bottom: 2.5px solid $nypl-blue-dark;
+
+  .title {
+    color: $nypl-blue-dark;
+  }
+}
+
+#barcodes {
+  height: 600px;
+}
+
 .nypl-submit-button-wrapper {
   display: block;
   margin: 25px 0 0;

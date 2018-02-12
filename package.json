@@ -29,7 +29,7 @@
     "webpack-dev-server": "2.7.1"
   },
   "dependencies": {
-    "@nypl/design-toolkit": "0.1.32",
+    "@nypl/design-toolkit": "0.1.33",
     "aws-sdk": "2.185.0",
     "axios": "0.14.0",
     "babel-core": "6.26.0",

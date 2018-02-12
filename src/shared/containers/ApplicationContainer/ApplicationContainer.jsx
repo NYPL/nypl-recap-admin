@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { renderRoutes } from 'react-router-config';
+import AppHeader from '../../components/AppHeader/AppHeader';
 import SidebarNavigation from '../../components/SidebarNavigation/SidebarNavigation';
 import Loader from '../../components/Loader/Loader';
 
@@ -18,8 +19,9 @@ class ApplicationContainer extends Component {
   render() {
     return (
       <div>
-        <div className="nypl-full-width-wrapper">
-          <div className="app-container nypl-row">
+        <AppHeader title="SCSBuster" />
+        <div className="nypl-full-width-wrapper app-content">
+          <div className="nypl-row">
             <SidebarNavigation className="nypl-column-one-quarter" />
             <main className="nypl-column-three-quarters">
               {renderRoutes(
