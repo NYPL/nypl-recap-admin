@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import isEqual from 'lodash/isEqual';
 import isEmpty from 'lodash/isEmpty';
+import forIn from 'lodash/forIn';
 import FormField from '../../components/FormField/FormField';
 
 class UpdateMetadata extends Component {
@@ -10,9 +11,12 @@ class UpdateMetadata extends Component {
     super(props);
     this.state = {
       type: 'update',
-      barcodes: [],
-      incorrect_barcodes: [],
-      protectCGD: false,
+      formFields: {
+        barcodes: '',
+        protectCGD: false
+      },
+      correctBarcodes: [],
+      incorrectBarcodes: [],
       formResult: {},
       fieldErrors: {}
     };
@@ -28,6 +32,16 @@ class UpdateMetadata extends Component {
       this.updateForm.inert = true;
     } else {
       this.updateForm.inert = false;
+    }
+  }
+
+  /**
+  * @desc Handles executing the focus() function for the given fieldName React ref instance
+  * @param {string} fieldName - the ref string name
+  */
+  focusOnField(fieldName) {
+    if (this[fieldName]) {
+      this[fieldName].focus();
     }
   }
 
@@ -60,6 +74,35 @@ class UpdateMetadata extends Component {
     };
   }
 
+  validateBarcodesField(fieldName, state) {
+    if (fieldName === 'barcodes') {
+      const textValue = state.formFields[fieldName];
+      const { correct_barcodes, incorrect_barcodes } = this.sanitizeBarcodesField(textValue);
+
+      if (!isEqual(correct_barcodes, state.correctBarcodes)) {
+        state.correctBarcodes = [...state.correctBarcodes, ...correct_barcodes];
+      }
+
+      // Override the incorrect barcodes on every blur event if they are not the same
+      if (!isEqual(incorrect_barcodes, state.incorrectBarcodes)) {
+        state.incorrectBarcodes = incorrect_barcodes;
+      }
+
+      if (isEmpty(textValue)) {
+        state.fieldErrors[fieldName] = 'The barcode(s) field is required';
+      } else if (!isEmpty(incorrect_barcodes)) {
+        // Only update the textarea with incorrect barcodes
+        state.formFields[fieldName] = incorrect_barcodes.join('\n');
+        state.fieldErrors[fieldName] = 'The barcode(s) remaining are incorrect, each barcode must be 14 numerical digits';
+      } else {
+        // Reset the errors object
+        if (state.fieldErrors[fieldName]) {
+          delete state.fieldErrors[fieldName];
+        }
+      }
+    }
+  }
+
   /**
   * @desc Handles updating the state for the given field name based on the value changes
   * @param {object} event - contains the current event context of the input field
@@ -68,8 +111,7 @@ class UpdateMetadata extends Component {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
-
-    this.setState({ [name]: value });
+    this.setState({ formFields: {...this.state.formFields, [name]: value} });
   }
 
   /**
@@ -78,36 +120,14 @@ class UpdateMetadata extends Component {
   * @param {object} event - contains the current event context of the field
   */
   handleInputBlur(event) {
-  const { target: { type, name, value, checked }} = event;
-  const fieldValue = type === 'checkbox' ? checked : value;
+    const { target: { type, name }} = event;
 
     if (type === 'textarea' && name === 'barcodes') {
-      const { correct_barcodes, incorrect_barcodes } = this.sanitizeBarcodesField(fieldValue);
-
-      if (!isEqual(correct_barcodes, this.state.barcodes)) {
-        this.setState((state) => ({ barcodes: [...state.barcodes, ...correct_barcodes] }));
-      }
-
-      // Override the incorrect barcodes on every blur event if they are not the same
-      if (!isEqual(incorrect_barcodes, this.state.incorrect_barcodes)) {
-        this.setState({ incorrect_barcodes: incorrect_barcodes });
-      }
-
-      // Only update the textarea with incorrect barcodes
-      if (!isEmpty(incorrect_barcodes)) {
-        const updatedTextAreaValues = incorrect_barcodes.join('\n');
-        event.target.value = updatedTextAreaValues;
-        this.setState({ fieldErrors: {
-          [name]: 'The barcode(s) remaining are incorrect, each barcode must be 14 numerical digits'
-        }});
-      } else {
-        // Reset the errors object
-        this.setState({ fieldErrors: {} });
-      }
-
-      if (isEmpty(fieldValue)) {
-        this.setState({ fieldErrors: { [name]: 'The barcode(s) field is required' } });
-      }
+      // React pattern to handle asynchronous state changes
+      this.setState(prevState => {
+        this.validateBarcodesField(name, prevState);
+        return prevState;
+      });
     }
   }
 
@@ -120,11 +140,20 @@ class UpdateMetadata extends Component {
   handleFormSubmit(event) {
     event.preventDefault();
 
-    if (this.areFormFieldsValid(this.state)) {
-      const { type, barcodes, protectCGD } = this.state;
+    if (isEmpty(this.state.formFields.barcodes)) {
+      this.setState({ fieldErrors:
+        {...this.state.fieldErrors, ['barcodes']: 'The barcode(s) field is required'}
+      });
+      this.focusOnField('barcodes');
+    }
+
+    if (isEmpty(this.state.fieldErrors) && this.isCorrectBarcodesListValid(this.state)) {
+      const { type, correctBarcodes, formFields: { protectCGD } } = this.state;
+
       this.props.setApplicationLoadingState(true);
+
       return axios.post('/update-metadata', {
-        barcodes,
+        barcodes: correctBarcodes,
         protectCGD,
         email: 'johndoe@example.com',
         action: type
@@ -132,7 +161,7 @@ class UpdateMetadata extends Component {
         console.log('Form Successful Response: ', response);
         this.props.setApplicationLoadingState(false);
         // Reset the correct barcodes array
-        this.setState({ barcodes: [], formResult: { processed: true } });
+        this.setState({ correctBarcodes: [], formResult: { processed: true } });
       }).catch(error => {
         console.log('Form Error Response: ', error);
 
@@ -148,9 +177,9 @@ class UpdateMetadata extends Component {
   * @param {object} state - current form state object
   * @return {boolean} if formState fields are valid returns true, otherwise it will default to false
   */
-  areFormFieldsValid(formState) {
-    const { barcodes } = formState;
-    return !isEmpty(barcodes) ? true : false;
+  isCorrectBarcodesListValid(formState) {
+    const { correctBarcodes } = formState;
+    return !isEmpty(correctBarcodes) ? true : false;
   }
 
   /**
@@ -188,6 +217,9 @@ class UpdateMetadata extends Component {
           label="Barcode(s)"
           fieldName="barcodes"
           type="textarea"
+          value={this.state.formFields.barcodes}
+          instructionText="Please paste/enter a list of 14 digit barcodes on every line"
+          handleOnChange={this.handleInputChange}
           handleOnBlur={this.handleInputBlur}
           errorField={this.state.fieldErrors.barcodes}
           fieldRef={(input) => { this.barcodes = input; }}
@@ -199,7 +231,7 @@ class UpdateMetadata extends Component {
           type="checkbox"
           label="Protect CGD"
           fieldName="protectCGD"
-          checked={this.state.protectCGD}
+          checked={this.state.formFields.protectCGD}
           handleOnChange={this.handleInputChange}
         />
         <div className="nypl-submit-button-wrapper">
