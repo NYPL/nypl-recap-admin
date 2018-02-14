@@ -74,11 +74,19 @@ class UpdateMetadata extends Component {
     };
   }
 
+  /**
+  * @desc Handles updating the state properties for validation upon obtaining text value from the
+  * field.
+  * @param {string} fieldName - the string name of the html field
+  * @param {object} state - the current state object
+  * @return {object} object containing the result of correct/incorrect barcodes as arrays
+  */
   validateBarcodesField(fieldName, state) {
     if (fieldName === 'barcodes') {
       const textValue = state.formFields[fieldName];
       const { correct_barcodes, incorrect_barcodes } = this.sanitizeBarcodesField(textValue);
 
+      // Merge array values
       if (!isEqual(correct_barcodes, state.correctBarcodes)) {
         state.correctBarcodes = [...state.correctBarcodes, ...correct_barcodes];
       }
