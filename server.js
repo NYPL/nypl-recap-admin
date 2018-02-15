@@ -123,10 +123,7 @@ app.use((req, res, next) => {
   const user = app.get('user');
 
   if (user && !isUserAuthorized(user)) {
-    return res.status(401).json({
-      statusCode: 401,
-      errorMessage: 'Sorry, this email is not authorized to use the Platform Admin app'
-    });
+    return res.status(403).send('Sorry, this email is not authorized to use the Platform Admin app');
   }
 
   return next();
