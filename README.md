@@ -53,7 +53,7 @@ $ npm run dist
 
 * **Step 2**: Starts the Node/Express server in `localhost:3001` with the `APP_ENV` set to `production`, targeting the proper `production` API's.
 ```sh
-$ APP_ENV=production CLIENT_SECRET=[CLIENT_SECRET] npm start:production
+$ APP_ENV=production CLIENT_SECRET=[CLIENT_SECRET] CALLBACK_URL=[SETUP_ON_AWS OR `local.nypl.org/callback`] npm start:production
 ```
 
 ## SQS
