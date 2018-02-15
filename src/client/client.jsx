@@ -16,5 +16,6 @@ const AppRouter = () => {
 }
 
 window.onload = () => {
+  require('wicg-inert');
   hydrate(<AppRouter />, document.getElementById('nypl-recap-admin'));
 };

@@ -23,8 +23,7 @@ const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
 const viewsPath = path.resolve(rootPath, 'src/server/views');
 const isProduction = process.env.NODE_ENV === 'production';
-const { sqs } = appConfig;
-
+const { applicationPort, sqs, oauth, publicKey } = appConfig;
 // AWS SQS Configuration
 aws.config.update({ region: sqs.region });
 const sqsClient = new aws.SQS({ apiVersion: '2012-11-05' });
@@ -40,11 +39,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.disable('x-powered-by');
 app.set('view engine', 'ejs');
 app.set('views', viewsPath);
-app.set('port', process.env.PORT || appConfig.port);
+app.set('port', process.env.PORT || applicationPort);
 // Set the CookieParser middleware
 app.use(cookieParser());
 // Set Global publicKey
-app.set('nyplPublicKey', appConfig.publicKey);
+app.set('nyplPublicKey', publicKey);
 app.use(session({ secret: process.env.SESSION_SECRET || uuidv4() }));
 // Sets the server path to /dist
 app.use(express.static(distPath));
@@ -68,11 +67,11 @@ app.use((req, res, next) => {
 
 passport.use('provider', new OAuth2Strategy(
   {
-    authorizationURL: 'https://isso.nypl.org/oauth/authorize',
-    tokenURL: 'https://isso.nypl.org/oauth/token',
-    clientID: appConfig.clientId,
-    clientSecret: appConfig.clientSecret,
-    callbackURL: 'http://local.nypl.org/callback',
+    authorizationURL: oauth.authorizationUrl,
+    tokenURL: oauth.tokenUrl,
+    clientID: oauth.clientId,
+    clientSecret: oauth.clientSecret,
+    callbackURL: oauth.callbackUrl,
     state: true,
     passReqToCallback: true,
   },
@@ -124,9 +123,10 @@ app.use((req, res, next) => {
   const user = app.get('user');
 
   if (user && !isUserAuthorized(user)) {
-    res.status(403).send('Sorry, this email is not authorized to use the Platform Admin app');
+    return res.status(403).send('Sorry, this email is not authorized to use the Platform Admin app');
   }
-  next();
+
+  return next();
 });
 
 // GET Route handles application view layer

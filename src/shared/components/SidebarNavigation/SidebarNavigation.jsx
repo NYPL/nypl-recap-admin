@@ -1,8 +1,8 @@
 import React from 'react';
 import NavLink from 'react-router-dom/NavLink';
 
-const SidebarNavigation = () => (
-  <nav className="sidebar-navigation" id="sidebar-navigation">
+const SidebarNavigation = ({ className = '' }) => (
+  <nav className={`${className} sidebar-navigation`} id="sidebar-navigation">
     <ul>
       <li>
         <NavLink to="/update-metadata" activeClassName="active">

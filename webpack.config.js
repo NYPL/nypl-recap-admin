@@ -2,8 +2,11 @@ const path = require('path');
 const webpack = require('webpack');
 const CleanBuild = require('clean-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const sassPaths = require('@nypl/design-toolkit').includePaths
+  .map((sassPath) => sassPath).join('&');
+
 // References the applications root path
-const rootPath = path.resolve(__dirname);
+const ROOT_PATH = path.resolve(__dirname);
 
 // PRODUCTION ENVIRONMENT CONFIG
 if (process.env.NODE_ENV === 'production') {
@@ -18,6 +21,7 @@ if (process.env.NODE_ENV === 'production') {
       loader: 'sass-loader',
       options: {
         sourceMap: true,
+        includePaths: sassPaths,
       },
     },
   ];
@@ -27,11 +31,11 @@ if (process.env.NODE_ENV === 'production') {
     entry: {
       app: [
         'babel-polyfill',
-        path.resolve(rootPath, 'src/client/client.jsx'),
+        path.resolve(ROOT_PATH, 'src/client/client.jsx'),
       ],
     },
     output: {
-      path: path.resolve(rootPath, 'dist'),
+      path: path.resolve(ROOT_PATH, 'dist'),
       filename: 'bundle.js',
     },
     resolve: {
@@ -46,7 +50,7 @@ if (process.env.NODE_ENV === 'production') {
         },
         {
           test: /\.scss$/,
-          include: path.resolve(rootPath, 'src'),
+          include: path.resolve(ROOT_PATH, 'src'),
           use: ExtractTextPlugin.extract({
             fallback: 'style-loader',
             use: loaders,
@@ -79,12 +83,12 @@ if (process.env.NODE_ENV === 'production') {
         'babel-polyfill',
         'webpack-dev-server/client?http://localhost:3000',
         'webpack/hot/only-dev-server',
-        path.resolve(rootPath, 'src/client/client.jsx'),
+        path.resolve(ROOT_PATH, 'src/client/client.jsx'),
       ],
     },
     output: {
       publicPath: 'http://localhost:3000/',
-      path: path.resolve(rootPath, 'dist'),
+      path: path.resolve(ROOT_PATH, 'dist'),
       filename: 'bundle.js',
     },
     resolve: {
@@ -102,9 +106,9 @@ if (process.env.NODE_ENV === 'production') {
           use: [
             'style-loader',
             'css-loader',
-            'sass-loader',
+            `sass-loader?includePaths=${sassPaths}`,
           ],
-          include: path.resolve(rootPath, 'src'),
+          include: path.resolve(ROOT_PATH, 'src'),
         },
       ],
     },
