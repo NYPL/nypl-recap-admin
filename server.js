@@ -28,7 +28,6 @@ const { applicationPort, sqs, oauth, publicKey } = appConfig;
 aws.config.update({ region: sqs.region });
 const sqsClient = new aws.SQS({ apiVersion: '2012-11-05' });
 
-console.log('oauth', oauth);
 /* Express Server Configurations
  * -----------------------------
 */
@@ -66,7 +65,6 @@ app.use((req, res, next) => {
   return ensureLoggedIn('/auth/provider')(req, res, next);
 });
 
-console.log('callbackURL', `${oauth.callbackUrl}:${app.get('port')}/callback`);
 passport.use('provider', new OAuth2Strategy(
   {
     authorizationURL: oauth.authorizationUrl,
