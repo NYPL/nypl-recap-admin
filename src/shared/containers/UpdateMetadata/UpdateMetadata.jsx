@@ -152,10 +152,9 @@ class UpdateMetadata extends Component {
       this.setState({ fieldErrors:
         {...this.state.fieldErrors, ['barcodes']: 'The barcode(s) field is required'}
       });
-      this.focusOnField('barcodes');
-    }
 
-    if (isEmpty(this.state.fieldErrors) && this.isCorrectBarcodesListValid(this.state)) {
+      this.focusOnField('barcodes');
+    } else if (this.isCorrectBarcodesListValid(this.state)) {
       const { type, correctBarcodes, formFields: { protectCGD } } = this.state;
 
       this.props.setApplicationLoadingState(true);
@@ -255,6 +254,7 @@ class UpdateMetadata extends Component {
   }
 
   render() {
+    console.log(this.state);
     return (
       <div className={this.props.className} id={this.props.id}>
         <h2>Update SCSB Metadata</h2>

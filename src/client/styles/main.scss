@@ -12,6 +12,7 @@
 
   .title {
     color: $nypl-blue-dark;
+    font-weight: 400;
   }
 }
 
@@ -22,4 +23,18 @@
 .nypl-submit-button-wrapper {
   display: block;
   margin: 25px 0 0;
+}
+
+.update-metadata-view,
+.transfer-metadata-view {
+  h2 {
+    &::before {
+      background: $nypl-gray-cool;
+      content: "";
+      display: block;
+      height: 0.25rem;
+      margin-bottom: 0.5rem;
+      width: 5rem;
+    }
+  }
 }

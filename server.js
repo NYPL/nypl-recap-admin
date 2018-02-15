@@ -23,12 +23,12 @@ const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
 const viewsPath = path.resolve(rootPath, 'src/server/views');
 const isProduction = process.env.NODE_ENV === 'production';
-const { sqs } = appConfig;
-
+const { applicationPort, sqs, oauth, publicKey } = appConfig;
 // AWS SQS Configuration
 aws.config.update({ region: sqs.region });
 const sqsClient = new aws.SQS({ apiVersion: '2012-11-05' });
 
+console.log('oauth', oauth);
 /* Express Server Configurations
  * -----------------------------
 */
@@ -40,11 +40,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.disable('x-powered-by');
 app.set('view engine', 'ejs');
 app.set('views', viewsPath);
-app.set('port', process.env.PORT || appConfig.port);
+app.set('port', process.env.PORT || applicationPort);
 // Set the CookieParser middleware
 app.use(cookieParser());
 // Set Global publicKey
-app.set('nyplPublicKey', appConfig.publicKey);
+app.set('nyplPublicKey', publicKey);
 app.use(session({ secret: process.env.SESSION_SECRET || uuidv4() }));
 // Sets the server path to /dist
 app.use(express.static(distPath));
@@ -66,13 +66,14 @@ app.use((req, res, next) => {
   return ensureLoggedIn('/auth/provider')(req, res, next);
 });
 
+console.log('callbackURL', `${oauth.callbackUrl}:${app.get('port')}/callback`);
 passport.use('provider', new OAuth2Strategy(
   {
-    authorizationURL: 'https://isso.nypl.org/oauth/authorize',
-    tokenURL: 'https://isso.nypl.org/oauth/token',
-    clientID: appConfig.clientId,
-    clientSecret: appConfig.clientSecret,
-    callbackURL: 'http://local.nypl.org/callback',
+    authorizationURL: oauth.authorizationUrl,
+    tokenURL: oauth.tokenUrl,
+    clientID: oauth.clientId,
+    clientSecret: oauth.clientSecret,
+    callbackURL: oauth.callbackUrl,
     state: true,
     passReqToCallback: true,
   },
