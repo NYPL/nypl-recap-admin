@@ -131,7 +131,8 @@ app.use((req, res, next) => {
 
 // GET Route handles application view layer
 app.get('*', renderAdminView);
-
+// GET Route to obtain refile errors
+app.get('/refile-errors', )
 // POST Routes handle SQS data
 app.post('/update-metadata', handleSqsDataProcessing(sqsClient, 'update'));
 app.post('/transfer-metadata', handleSqsDataProcessing(sqsClient, 'transfer'));

@@ -1,6 +1,7 @@
 import ApplicationContainer from '../containers/ApplicationContainer/ApplicationContainer';
 import TransferMetadata from '../containers/TransferMetadata/TransferMetadata';
 import UpdateMetadata from '../containers/UpdateMetadata/UpdateMetadata';
+import Refile from '../containers/Refile/Refile';
 import NotFound from '../components/NotFound/NotFound';
 
 const routes = [
@@ -16,6 +17,11 @@ const routes = [
         path: '/update-metadata',
         exact: true,
         component: UpdateMetadata
+      },
+      {
+        path: '/refile',
+        exact: true,
+        component: Refile
       },
       {
         path: '*',

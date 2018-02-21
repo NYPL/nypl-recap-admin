@@ -17,6 +17,7 @@ class ApplicationContainer extends Component {
   }
 
   render() {
+    console.log(this.props);
     return (
       <div>
         <AppHeader title="SCSBuster" />
@@ -28,7 +29,7 @@ class ApplicationContainer extends Component {
                 this.props.route.routes,
                 {
                   setApplicationLoadingState: this.setApplicationLoadingState,
-                  isFormProcessing: this.state.isFormProcessing
+                  isFormProcessing: this.state.isFormProcessing,
                 }
               )}
             </main>
