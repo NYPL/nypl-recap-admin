@@ -21,14 +21,6 @@ In order to use the SSO authentication your browser needs to talk to your app on
 
 You only need to do that once (well, maybe again if you upgrade your OS — that _might_ update your `hosts` file).
 
-In order to get your app to listen on port `80` you will need to make sure the following command is running *before every time* you run your node server:
-
-```sh
-$ sudo ssh -N -L 80:localhost:3001 `whoami`@localhost
-```
-
-Open up a new terminal window, run that command (you will be prompted for your password) and leave it running as you start up the application server, as described below.
-
 ## Running the Application
 
 ### Development Mode
