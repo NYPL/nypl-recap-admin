@@ -14,7 +14,7 @@ export default {
     loginUrl: process.env.OAUTH_LOGIN_URL || 'https://isso.nypl.org/auth/login',
     clientId: process.env.CLIENT_ID || 'platform_admin',
     clientSecret: process.env.CLIENT_SECRET,
-    callbackUrl: process.env.NODE_ENV === 'production' ? process.env.OAUTH_CALLBACK_URL : 'http://local.nypl.org/callback',
+    callbackUrl: process.env.NODE_ENV === 'production' ? process.env.OAUTH_CALLBACK_URL : 'http://local.nypl.org:3001/callback',
   },
   sqs: {
     region: process.env.AWS_REGION || 'us-east-1',
