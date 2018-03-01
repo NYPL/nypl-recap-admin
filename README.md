@@ -21,14 +21,6 @@ In order to use the SSO authentication your browser needs to talk to your app on
 
 You only need to do that once (well, maybe again if you upgrade your OS — that _might_ update your `hosts` file).
 
-In order to get your app to listen on port `80` you will need to make sure the following command is running whenever you run your node server:
-
-```sh
-$ sudo ssh -N -L 80:localhost:3001 `whoami`@localhost
-```
-
-Open up a new terminal window, run that command (you will be prompted for your password) and leave it running as you start up the application server, as described below.
-
 ## Running the Application
 
 ### Development Mode
@@ -41,6 +33,12 @@ $ CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 defaulting to
 You can also set the `APP_ENV` variable which dictates what API environment to use as the main source.
 ```sh
 $ APP_ENV=development|qa|production CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 with set APP_ENV
+```
+
+If you do not have a default AWS profile on local instance, you MUST specify the AWS profile you'd like use with the app. To do so, you may include `AWS_PROFILE` on the command line
+
+```sh
+$ AWS_PROFILE=[AWS_PROFILE_NAME] APP_ENV=development|qa|production CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 with set APP_ENV
 ```
 
 ### Production Mode
