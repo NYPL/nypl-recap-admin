@@ -1,6 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
 import config from '../../../../config/appConfig';
 import NyplApiClient from '@nypl/nypl-data-api-client';
+// Read local .env file. The environment variables will be assigned with process.env in the beginning
+import dotEnv from 'dotenv';
 
 function constructApiHeaders(token = '') {
   return {
@@ -111,11 +113,13 @@ export function handleSqsDataProcessing(sqsClient, type) {
 }
 
 export function getRefileErrors(req, res, next) {
-  console.log(config.oauth);
+  // Read local .env file. The environment variables will be assigned with process.env in the beginning
+  dotEnv.config();
+
   const client = new NyplApiClient({
     base_url: 'https://dev-platform.nypl.org/api/v0.1/',
     oauth_key: config.oauth.refileRequestId,
-    oauth_secret: config.oauth.refileRequestSecret,
+    oauth_secret: process.env.REFILE_REQUEST_SECRET,
     oauth_url: config.oauth.tokenUrlForNyplApiClient,
   });
 

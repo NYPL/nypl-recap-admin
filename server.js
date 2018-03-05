@@ -18,6 +18,9 @@ import { renderAdminView } from './src/server/routes/render';
 import { isUserAuthorized, repeatRetrieveAuthorizedUsers, verifySessionFromToken } from './src/server/routes/auth';
 // App Config File
 import appConfig from './config/appConfig';
+// Read local .env file. The environment variables will be assigned with process.env in the beginning
+import dotEnv from 'dotenv';
+dotEnv.config();
 // Global Configuration Variables
 const rootPath = __dirname;
 const distPath = path.resolve(rootPath, 'dist');
@@ -70,7 +73,7 @@ passport.use('provider', new OAuth2Strategy(
     authorizationURL: oauth.authorizationUrl,
     tokenURL: oauth.tokenUrl,
     clientID: oauth.clientId,
-    clientSecret: oauth.clientSecret,
+    clientSecret: process.env.CLIENT_SECRET,
     callbackURL: oauth.callbackUrl,
     state: true,
     passReqToCallback: true,

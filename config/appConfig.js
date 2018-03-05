@@ -13,11 +13,11 @@ export default {
     tokenUrl: process.env.OAUTH_TOKEN_URL || 'https://isso.nypl.org/oauth/token',
     loginUrl: process.env.OAUTH_LOGIN_URL || 'https://isso.nypl.org/auth/login',
     clientId: process.env.CLIENT_ID || 'platform_admin',
-    clientSecret: process.env.CLIENT_SECRET,
+    clientSecret: process.env.REACT_APP_CLIENT_SECRET,
     callbackUrl: process.env.NODE_ENV === 'production' ? process.env.OAUTH_CALLBACK_URL : 'http://local.nypl.org:3001/callback',
     tokenUrlForNyplApiClient: 'https://isso.nypl.org/',
     refileRequestId: process.env.REFILE_REQUEST_ID || 'refile_request_service',
-    refileRequestSecret: process.env.REFILE_REQUEST_SECRET,
+    refileRequestSecret: process.env.REACT_APP_REFILE_REQUEST_SECRET,
   },
   sqs: {
     region: process.env.AWS_REGION || 'us-east-1',
