@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import axios from  'axios';
 import isEmpty from 'lodash/isEmpty';
 import forIn from 'lodash/forIn';
 import FormField from '../../components/FormField/FormField';
@@ -16,6 +17,36 @@ class RefileErrorsForm extends Component {
       formResult: {}
     };
     this.baseState = this.state;
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleInputBlur = this.handleInputBlur.bind(this);
+    this.handleFormSubmit = this.handleFormSubmit.bind(this);
+  }
+
+  /**
+  * @desc Handles updating the state for the given field name based on the value changes
+  * @param {object} event - contains the current event context of the input field
+  */
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+    this.setState({ formFields: {...this.state.formFields, [name]: value} });
+  }
+
+  /**
+  * @desc Handles updating the state based on the validation function executed in the setState
+  * anonymous function.
+  * @param {object} event - contains the current event context of the input field
+  */
+  handleInputBlur(event) {
+    const { target, type } = event;
+    const name = target.name;
+
+    // React pattern to handle asynchronous state changes
+    this.setState(prevState => {
+      this.validateField(name, prevState);
+      return prevState;
+    });
   }
 
   /**
@@ -66,16 +97,10 @@ class RefileErrorsForm extends Component {
   validateField(fieldName, state, focusOnError = false) {
     switch (fieldName) {
       case 'startDate':
-        // if (!isBarcodeValid(state.formFields[fieldName])) {
-        //   this.setFieldError(fieldName, state, 'The barcode field must be 14 numerical characters');
-        //   if (focusOnError === true) {
-        //     this.focusOnField(fieldName);
-        //   }
-        // } else {
-        //   this.removeFieldError(fieldName, state);
-        // }
+        // TODO: implement validations, make sure 1) there's value; 2) the value is in the valid format
         break;
       case 'endDate':
+        // TODO: implement validations, make sure 1) there's value; 2) the value is in the valid format
         // if (!isBarcodeValid(state.formFields[fieldName])) {
         //   this.setFieldError(fieldName, state, 'The barcode field must be 14 numerical characters');
         //   if (focusOnError === true) {
@@ -91,11 +116,59 @@ class RefileErrorsForm extends Component {
   }
 
   /**
+  * @desc Handles sending the form field payload from the state to the proper API endpoint. All
+  * fields are validated prior to executing the ajax call. Updates the form state booleans and result
+  * based on successful or error responses
+  * @param {object} event - contains the current event context of the field
+  */
+  handleFormSubmit(event) {
+    event.preventDefault();
+
+    // TODO: execute validations here
+    // Iterate through patron fields and ensure all fields are valid
+    // forIn(this.state.formFields, (value, key) => {
+    //   this.validateField(key, this.state, true);
+    // });
+
+    if (isEmpty(this.state.fieldErrors)) {
+      const {
+        type,
+        formFields: {
+          startDate,
+          endDate,
+        }
+      } = this.state;
+
+      // Update the Parent Container Loading State
+      this.props.setApplicationLoadingState(true);
+
+      return axios.post(
+        '/get-refile-errors',
+        {
+          startDate,
+          endDate,
+        },
+        {
+          headers: { 'csrf-token': this.state.csrfToken }
+        }
+      ).then(response => {
+        console.log('Form Successful Response: ', response);
+        this.props.setApplicationLoadingState(false);
+        this.setState({...this.baseState, formResult: { processed: true } });
+      }).catch(error => {
+        console.log('Form Error Response: ', error);
+        this.props.setApplicationLoadingState(false);
+        this.setState({...this.state, formResult: { processed: false, response: error } });
+      });
+    }
+  }
+
+  /**
   * @desc Handles returning the correct DOM for the Refile Errors form
   */
   renderRefileErrorsFrom() {
     return(
-      <form onSubmit={this.props.onSubmit} ref={(elem) => { this.refileForm = elem; }}>
+      <form onSubmit={this.handleFormSubmit}>
         <FormField
           className="nypl-text-field"
           id="startDate"
@@ -104,7 +177,7 @@ class RefileErrorsForm extends Component {
           fieldName="startDate"
           instructionText="Please enter a 14 digit barcode"
           value={this.state.formFields.startDate}
-          handleOnChange={this.props.handleOnChange}
+          handleOnChange={this.handleInputChange}
           handleOnBlur={this.props.handleInputBlur}
           errorField={this.state.fieldErrors.startDate}
           fieldRef={(input) => { this.startDate = input; }}
@@ -119,8 +192,8 @@ class RefileErrorsForm extends Component {
           fieldName="endDate"
           instructionText="Please enter a 14 digit barcode"
           value={this.state.formFields.endDate}
-          handleOnChange={this.props.handleOnChange}
-          handleOnBlur={this.props.handleInputBlur}
+          handleOnChange={this.handleInputChange}
+          handleOnBlur={this.handleInputBlur}
           errorField={this.state.fieldErrors.endDate}
           fieldRef={(input) => { this.endDate = input; }}
           isRequired
@@ -130,7 +203,7 @@ class RefileErrorsForm extends Component {
             className="nypl-primary-button"
             type="submit"
             value="Submit"
-            disabled={this.props.disabled}
+            disabled={this.props.isFormProcessing}
           />
         </div>
       </form>
@@ -156,8 +229,8 @@ RefileErrorsForm.propTypes = {
 };
 
 RefileErrorsForm.defaultProps = {
-  className: 'transfer-metadata-view',
-  id: 'transfer-metadata-view'
+  className: '',
+  id: ''
 };
 
 export default RefileErrorsForm;

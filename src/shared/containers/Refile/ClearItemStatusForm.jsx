@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import axios from  'axios';
 import isEmpty from 'lodash/isEmpty';
 import forIn from 'lodash/forIn';
 import { isBarcodeValid } from '../../utils/ValidationUtils';
@@ -17,15 +18,36 @@ class ClearItemStatusForm extends Component {
       formResult: {}
     };
     this.baseState = this.state;
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleInputBlur = this.handleInputBlur.bind(this);
+    this.handleFormSubmit = this.handleFormSubmit.bind(this);
   }
 
-  componentWillReceiveProps(nextProps) {
-    // Update the inert flag when the form is in a processing/loading state
-    if (nextProps.isFormProcessing === true) {
-      this.refileForm.inert = true;
-    } else {
-      this.refileForm.inert = false;
-    }
+  /**
+  * @desc Handles updating the state for the given field name based on the value changes
+  * @param {object} event - contains the current event context of the input field
+  */
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+    this.setState({ formFields: {...this.state.formFields, [name]: value} });
+  }
+
+  /**
+  * @desc Handles updating the state based on the validation function executed in the setState
+  * anonymous function.
+  * @param {object} event - contains the current event context of the input field
+  */
+  handleInputBlur(event) {
+    const { target, type } = event;
+    const name = target.name;
+
+    // React pattern to handle asynchronous state changes
+    this.setState(prevState => {
+      this.validateField(name, prevState);
+      return prevState;
+    });
   }
 
   /**
@@ -113,13 +135,54 @@ class ClearItemStatusForm extends Component {
     );
   }
 
+  /**
+  * @desc Handles sending the form field payload from the state to the proper API endpoint. All
+  * fields are validated prior to executing the ajax call. Updates the form state booleans and result
+  * based on successful or error responses
+  * @param {object} event - contains the current event context of the field
+  */
+  handleFormSubmit(event) {
+    event.preventDefault();
+
+    // Iterate through patron fields and ensure all fields are valid
+    forIn(this.state.formFields, (value, key) => {
+      this.validateField(key, this.state, true);
+    });
+
+    if (isEmpty(this.state.fieldErrors)) {
+      const {
+        formFields: {
+          barcode,
+        }
+      } = this.state;
+
+      // Update the Parent Container Loading State
+      this.props.setApplicationLoadingState(true);
+
+      return axios.post(
+        '/clear-item-status',
+        {
+          barcode,
+        }
+      ).then(response => {
+        console.log('Form Successful Response: ', response);
+        this.props.setApplicationLoadingState(false);
+        this.setState({...this.baseState, formResult: { processed: true } });
+      }).catch(error => {
+        console.log('Form Error Response: ', error);
+        this.props.setApplicationLoadingState(false);
+        this.setState({...this.state, formResult: { processed: false, response: error } });
+      });
+    }
+  }
+
   render() {
     return (
       <div className={this.props.className} id={this.props.id}>
         <h2>Refile</h2>
         <h3>Set Item Status</h3>
         <p>Clear an "in transit" or "checked out" item status in Sierra</p>
-        <form onSubmit={this.props.onSubmit} ref={(elem) => { this.refileForm = elem; }}>
+        <form onSubmit={this.handleFormSubmit}>
           <FormField
             className="nypl-text-field"
             id="barcode"
@@ -128,8 +191,8 @@ class ClearItemStatusForm extends Component {
             fieldName="barcode"
             instructionText="Make sure the item is available in SCSB first"
             value={this.state.formFields.barcode}
-            handleOnChange={this.props.handleOnChange}
-            handleOnBlur={this.props.handleOnBlur}
+            handleOnChange={this.handleInputChange}
+            handleOnBlur={this.handleInputBlur}
             errorField={this.state.fieldErrors.barcode}
             fieldRef={(input) => { this.barcode = input; }}
             placeholder="Enter Barcode"
@@ -140,7 +203,7 @@ class ClearItemStatusForm extends Component {
               className="nypl-primary-button"
               type="submit"
               value="Submit"
-              disabled={this.props.disabled}
+              disabled={this.props.isFormProcessing}
             />
           </div>
       </form>
@@ -157,8 +220,8 @@ ClearItemStatusForm.propTypes = {
 };
 
 ClearItemStatusForm.defaultProps = {
-  className: 'transfer-metadata-view',
-  id: 'transfer-metadata-view'
+  className: '',
+  id: ''
 };
 
 export default ClearItemStatusForm;

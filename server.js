@@ -13,7 +13,7 @@ import uuidv4 from 'uuid/v4';
 import { updateMetadata } from './src/server/routes/api';
 import aws from 'aws-sdk';
 // App Route Handling
-import { handleSqsDataProcessing } from './src/server/routes/api';
+import { handleSqsDataProcessing, getRefileErrors } from './src/server/routes/api';
 import { renderAdminView } from './src/server/routes/render';
 import { isUserAuthorized, repeatRetrieveAuthorizedUsers, verifySessionFromToken } from './src/server/routes/auth';
 // App Config File
@@ -131,8 +131,8 @@ app.use((req, res, next) => {
 
 // GET Route handles application view layer
 app.get('*', renderAdminView);
-// GET Route to obtain refile errors
-app.get('/refile-errors', )
+// POST Route to obtain refile errors
+app.post('/get-refile-errors', getRefileErrors)
 // POST Routes handle SQS data
 app.post('/update-metadata', handleSqsDataProcessing(sqsClient, 'update'));
 app.post('/transfer-metadata', handleSqsDataProcessing(sqsClient, 'transfer'));
