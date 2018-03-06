@@ -125,7 +125,8 @@ app.use((req, res, next) => {
   if (user && !isUserAuthorized(user)) {
     return res.status(403).send('Sorry, this email is not authorized to use the Platform Admin app');
   }
-
+  
+  req.user = user;
   return next();
 });
 
