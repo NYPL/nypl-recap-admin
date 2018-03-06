@@ -4,23 +4,33 @@ import axios from  'axios';
 import isEmpty from 'lodash/isEmpty';
 import forIn from 'lodash/forIn';
 import FormField from '../../components/FormField/FormField';
+import moment from 'moment';
+import { map as _map } from 'underscore';
 
 class RefileErrorsForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
       formFields: {
-        startDate: '',
-        endDate: '',
+        startDate: moment().subtract(30, 'day').format('MM/DD/YYYY'),
+        endDate: moment().format('MM/DD/YYYY'),
         offset: 0,
       },
       fieldErrors: {},
-      formResult: {}
+      formResult: {},
+      refileErrorResults: [],
+      refileErrorResultsTotal: 0,
+      pageOfRefileErrorResults: 1,
     };
     this.baseState = this.state;
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleInputBlur = this.handleInputBlur.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
+    this.clickSubmit = this.clickSubmit.bind(this);
+  }
+
+  componentDidMount() {
+    this.handleFormSubmit();
   }
 
   /**
@@ -116,13 +126,18 @@ class RefileErrorsForm extends Component {
     }
   }
 
+  clickSubmit(event) {
+    event.preventDefault();
+    this.handleFormSubmit();
+  }
+
   /**
   * @desc Handles sending the form field payload from the state to the proper API endpoint. All
   * fields are validated prior to executing the ajax call. Updates the form state booleans and result
   * based on successful or error responses
   * @param {object} event - contains the current event context of the field
   */
-  handleFormSubmit(event) {
+  handleFormSubmit() {
     event.preventDefault();
 
     // TODO: execute validations here
@@ -155,7 +170,13 @@ class RefileErrorsForm extends Component {
       ).then(response => {
         console.log('Form Successful Response: ', response);
         this.props.setApplicationLoadingState(false);
-        this.setState({...this.baseState, formResult: { processed: true } });
+
+        this.setState({
+          ...this.baseState,
+          formResult: { processed: true },
+          refileErrorResultsTotal: response.data.data.totalCount,
+          refileErrorResults: response.data.data.data
+        });
       }).catch(error => {
         console.log('Form Error Response: ', error);
         this.props.setApplicationLoadingState(false);
@@ -169,14 +190,14 @@ class RefileErrorsForm extends Component {
   */
   renderRefileErrorsFrom() {
     return(
-      <form onSubmit={this.handleFormSubmit}>
+      <form onSubmit={this.clickSubmit}>
         <FormField
           className="nypl-text-field"
           id="startDate"
           type="text"
           label="StartDate"
           fieldName="startDate"
-          instructionText="Please enter a 14 digit barcode"
+          instructionText="Please enter a date as the follow format MM/DD/YYYY"
           value={this.state.formFields.startDate}
           handleOnChange={this.handleInputChange}
           handleOnBlur={this.props.handleInputBlur}
@@ -191,7 +212,7 @@ class RefileErrorsForm extends Component {
           type="text"
           label="EndDate"
           fieldName="endDate"
-          instructionText="Please enter a 14 digit barcode"
+          instructionText="Please enter a date as the follow format MM/DD/YYYY"
           value={this.state.formFields.endDate}
           handleOnChange={this.handleInputChange}
           handleOnBlur={this.handleInputBlur}
@@ -211,12 +232,48 @@ class RefileErrorsForm extends Component {
     );
   }
 
+  renderRefileErrorResults() {
+    const itemRows = (this.state.refileErrorResults.length) ?
+      this.state.refileErrorResults.map((item, i) =>
+        <tr key={i}>
+          <td>{item.id}</td>
+          <td>{item.itemBarcode}</td>
+          <td>{item.createdDate.split('T')[0]}</td>
+          <td>{item.updatedDate.split('T')[0]}</td>
+        </tr>
+      ) : null;
+
+    return (
+      <table>
+        <caption className="hidden">Refile Error Details</caption>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Barcodes</th>
+            <th scope="col">Created Date</th>
+            <th scope="col">Updated Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {itemRows}
+        </tbody>
+      </table>
+    );
+  }
+
   render() {
     return (
       <div className={this.props.className} id={this.props.id}>
         <h3>Refile Errors</h3>
         <p>Enter dates below to see errors for a specific date range</p>
         {this.renderRefileErrorsFrom()}
+        <div>
+          <p>Displaying 1-25 of {this.state.refileErrorResultsTotal} errors from {this.state.formFields.startDate}-{this.state.formFields.endDate}</p>
+          {this.renderRefileErrorResults()}
+          <button></button>
+          <p>Page {this.state.pageOfRefileErrorResults} of {Math.ceil((parseInt(this.state.refileErrorResultsTotal, 10) / 25))} </p>
+        </div>
+        <button></button>
       </div>
     );
   }

@@ -145,14 +145,12 @@ export function getRefileErrors(req, res, next) {
     console.log(response.totalCount);
     res.json({
       status: 200,
-      count: limitQuery,
       data: response
     });
   })
   .catch(error => {
     res.json({
       status: 400,
-      count: limitQuery,
       data: error
     });
   });
