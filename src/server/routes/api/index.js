@@ -114,6 +114,13 @@ export function handleSqsDataProcessing(sqsClient, type) {
 }
 
 export function getRefileErrors(req, res, next) {
+    // The format of start date and end date should be YYYY-MM-DD
+    const startDateQuery = req.body.startDate.replace(/\//g, '-');
+    const endDateQuery = req.body.endDate.replace(/\//g, '-');
+    const offsetQuery = req.body.offset;
+    const limitQuery = 25;
+
+
   const client = new NyplApiClient({
     base_url: 'https://dev-platform.nypl.org/api/v0.1/',
     oauth_key: config.oauth.refileRequestId,
@@ -122,7 +129,7 @@ export function getRefileErrors(req, res, next) {
   });
 
   client.get(
-    'recap/refile-requests?createdDate=[2018-02-01,2018-03-03]&offset=0&limit=25',
+    `recap/refile-requests?createdDate=[${startDateQuery},${endDateQuery}]&offset=${offsetQuery}&limit=${limitQuery}`,
     {
       json: true,
     }
