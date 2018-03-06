@@ -12,7 +12,7 @@ class RefileErrorsForm extends Component {
     super(props);
     this.state = {
       formFields: {
-        startDate: moment().subtract(30, 'day').format('MM/DD/YYYY'),
+        startDate: moment().subtract(1, 'day').format('MM/DD/YYYY'),
         endDate: moment().format('MM/DD/YYYY'),
         offset: 0,
       },
@@ -27,6 +27,8 @@ class RefileErrorsForm extends Component {
     this.handleInputBlur = this.handleInputBlur.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.clickSubmit = this.clickSubmit.bind(this);
+    this.hitPageButtonPre = this.hitPageButtonPre.bind(this);
+    this.hitPageButtonNext = this.hitPageButtonNext.bind(this);
   }
 
   componentDidMount() {
@@ -131,6 +133,28 @@ class RefileErrorsForm extends Component {
     this.handleFormSubmit();
   }
 
+  hitPageButtonPre() {
+    this.setState({
+      formFields: {
+        startDate: this.state.formFields.startDate,
+        endDate: this.state.formFields.endDate,
+        offset: this.state.formFields.offset - 25,
+      },
+      pageOfRefileErrorResults: this.state.pageOfRefileErrorResults - 1
+    }, () => { this.handleFormSubmit(); });
+  }
+
+  hitPageButtonNext() {
+    this.setState({
+      formFields: {
+        startDate: this.state.formFields.startDate,
+        endDate: this.state.formFields.endDate,
+        offset: this.state.formFields.offset + 25,
+      },
+      pageOfRefileErrorResults: this.state.pageOfRefileErrorResults + 1
+    }, () => { this.handleFormSubmit(); });
+  }
+
   /**
   * @desc Handles sending the form field payload from the state to the proper API endpoint. All
   * fields are validated prior to executing the ajax call. Updates the form state booleans and result
@@ -175,7 +199,13 @@ class RefileErrorsForm extends Component {
           ...this.baseState,
           formResult: { processed: true },
           refileErrorResultsTotal: response.data.data.totalCount,
-          refileErrorResults: response.data.data.data
+          refileErrorResults: response.data.data.data,
+          formFields: {
+            startDate: this.state.formFields.startDate,
+            endDate: this.state.formFields.endDate,
+            offset: this.state.formFields.offset,
+          },
+          pageOfRefileErrorResults: this.state.pageOfRefileErrorResults,
         });
       }).catch(error => {
         console.log('Form Error Response: ', error);
@@ -233,13 +263,13 @@ class RefileErrorsForm extends Component {
   }
 
   renderRefileErrorResults() {
-    const itemRows = (this.state.refileErrorResults.length) ?
+    const itemRows = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       this.state.refileErrorResults.map((item, i) =>
         <tr key={i}>
           <td>{item.id}</td>
           <td>{item.itemBarcode}</td>
-          <td>{item.createdDate.split('T')[0]}</td>
-          <td>{item.updatedDate.split('T')[0]}</td>
+          <td>{(item.updatedDate) ? item.createdDate.split('T')[0] : ''}</td>
+          <td>{(item.updatedDate) ? item.updatedDate.split('T')[0] : ''}</td>
         </tr>
       ) : null;
 
@@ -262,6 +292,8 @@ class RefileErrorsForm extends Component {
   }
 
   render() {
+    const itemStart = this.state.formFields.offset;
+    const currentPage = this.state.pageOfRefileErrorResults;
     return (
       <div className={this.props.className} id={this.props.id}>
         <h3>Refile Errors</h3>
@@ -270,10 +302,10 @@ class RefileErrorsForm extends Component {
         <div>
           <p>Displaying 1-25 of {this.state.refileErrorResultsTotal} errors from {this.state.formFields.startDate}-{this.state.formFields.endDate}</p>
           {this.renderRefileErrorResults()}
-          <button></button>
-          <p>Page {this.state.pageOfRefileErrorResults} of {Math.ceil((parseInt(this.state.refileErrorResultsTotal, 10) / 25))} </p>
         </div>
-        <button></button>
+        <button onClick={this.hitPageButtonPre}>Previous</button>
+        <p>Page {currentPage} of {Math.ceil((parseInt(this.state.refileErrorResultsTotal, 10) / 25))}</p>
+        <button onClick={this.hitPageButtonNext}>Next</button>
       </div>
     );
   }
