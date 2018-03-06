@@ -113,13 +113,20 @@ export function handleSqsDataProcessing(sqsClient, type) {
   };
 }
 
+function constructDateQuery(dateInput, isEndDate = false) {
+  const lastSecond = (isEndDate) ? 'T23:59:59' : '';
+  const dateArray = dateInput.split('/');
+
+  return `${dateArray[2]}-${dateArray[0]}-${dateArray[1]}${lastSecond}`;
+}
+
 export function getRefileErrors(req, res, next) {
     // The format of start date and end date should be YYYY-MM-DD
-    const startDateQuery = req.body.startDate.replace(/\//g, '-');
-    const endDateQuery = req.body.endDate.replace(/\//g, '-');
+    // end date should add one more date to get the full day data of the end date
+    const startDateQuery = constructDateQuery(req.body.startDate, false);
+    const endDateQuery = constructDateQuery(req.body.endDate, true);
     const offsetQuery = req.body.offset;
     const limitQuery = 25;
-
 
   const client = new NyplApiClient({
     base_url: 'https://dev-platform.nypl.org/api/v0.1/',
@@ -129,22 +136,23 @@ export function getRefileErrors(req, res, next) {
   });
 
   client.get(
-    `recap/refile-requests?createdDate=[${startDateQuery},${endDateQuery}]&offset=${offsetQuery}&limit=${limitQuery}`,
+    `recap/refile-requests?createdDate=[${startDateQuery},${endDateQuery}]&offset=${offsetQuery}&limit=${limitQuery}&includeTotalCount=true`,
     {
       json: true,
     }
   )
   .then(response => {
+    console.log(response.totalCount);
     res.json({
       status: 200,
-      count: 25,
+      count: limitQuery,
       data: response
     });
   })
   .catch(error => {
     res.json({
       status: 400,
-      count: 25,
+      count: limitQuery,
       data: error
     });
   });

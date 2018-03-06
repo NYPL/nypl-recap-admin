@@ -144,7 +144,7 @@ class RefileErrorsForm extends Component {
       // Update the Parent Container Loading State
       this.props.setApplicationLoadingState(true);
 
-      // The format of start date and end date should be YYYY/MM/DD
+      // The format of start date and end date should be MM/DD/YYYY
       return axios.post(
         '/get-refile-errors',
         {
