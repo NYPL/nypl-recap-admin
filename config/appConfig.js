@@ -19,10 +19,6 @@ export default {
     refileRequestId: process.env.REFILE_REQUEST_ID || 'refile_request_service',
     // refileRequestSecret should be put in .env file
   },
-  sqs: {
-    region: process.env.AWS_REGION || 'us-east-1',
-    api: process.env.AWS_SQS_API_URL || 'https://sqs.us-east-1.amazonaws.com/224280085904/sierra-updates-for-scsb-development'
-  },
   publicKey:
     '-----BEGIN PUBLIC KEY-----\n' +
     'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA44ilHg/PxcJYsISHMRyo\n' +

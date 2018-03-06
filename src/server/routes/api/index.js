@@ -3,6 +3,7 @@ import config from '../../../../config/appConfig';
 import NyplApiClient from '@nypl/nypl-data-api-client';
 // Read local .env file. The environment variables will be assigned with process.env in the beginning
 import dotEnv from 'dotenv';
+dotEnv.config();
 
 function constructApiHeaders(token = '') {
   return {
@@ -66,7 +67,7 @@ function validateSqsData(params, type) {
 
 export function handleSqsDataProcessing(sqsClient, type) {
   return (req, res, next) => {
-    const { api } = config.sqs;
+    const api = process.env.SQS_API;
     const params = req.body;
     const validatedSqsData = validateSqsData(params, type);
 
@@ -113,9 +114,6 @@ export function handleSqsDataProcessing(sqsClient, type) {
 }
 
 export function getRefileErrors(req, res, next) {
-  // Read local .env file. The environment variables will be assigned with process.env in the beginning
-  dotEnv.config();
-
   const client = new NyplApiClient({
     base_url: 'https://dev-platform.nypl.org/api/v0.1/',
     oauth_key: config.oauth.refileRequestId,
