@@ -64,7 +64,8 @@ function validateSqsData(params, type) {
 export function handleSqsDataProcessing(sqsClient, type) {
   return (req, res, next) => {
     const { api } = config.sqs;
-    const params = req.body;
+    const email = req.user.email;
+    const params = {...req.body, email};
     const validatedSqsData = validateSqsData(params, type);
 
     if (!sqsClient) {
