@@ -1,3 +1,7 @@
+// Read local .env file. The environment variables will be assigned with process.env in the beginning
+import dotEnv from 'dotenv';
+dotEnv.config();
+
 export default {
   appTitle: 'NYPL | ReCAP Admin',
   appName: 'NYPL ReCAP Admin',
@@ -13,11 +17,14 @@ export default {
     tokenUrl: process.env.OAUTH_TOKEN_URL || 'https://isso.nypl.org/oauth/token',
     loginUrl: process.env.OAUTH_LOGIN_URL || 'https://isso.nypl.org/auth/login',
     clientId: process.env.CLIENT_ID || 'platform_admin',
-    // clientSecret should be put in .env file
+    clientSecret: process.env.CLIENT_SECRET,
     callbackUrl: process.env.NODE_ENV === 'production' ? process.env.OAUTH_CALLBACK_URL : 'http://local.nypl.org:3001/callback',
-    tokenUrlForNyplApiClient: 'https://isso.nypl.org/',
+  },
+  nyplMicroService: {
+    tokenUrlForNyplApiClient: process.env.TOKEN_URL_FOR_NYPL_API_CLIENT,
+    platformBaseUrl: process.env.PLATFORM_BASE_URL,
     refileRequestId: process.env.REFILE_REQUEST_ID || 'refile_request_service',
-    // refileRequestSecret should be put in .env file
+    refileRequestSecret: process.env.REFILE_REQUEST_SECRET,
   },
   publicKey:
     '-----BEGIN PUBLIC KEY-----\n' +
