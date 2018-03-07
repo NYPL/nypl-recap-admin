@@ -21,6 +21,10 @@ class RefileErrorsForm extends Component {
       refileErrorResults: [],
       refileErrorResultsTotal: 0,
       pageOfRefileErrorResults: 1,
+      displayFields: {
+        startDate: '',
+        endDate: '',
+      },
     };
     this.baseState = this.state;
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -214,6 +218,10 @@ class RefileErrorsForm extends Component {
             offset: this.state.formFields.offset,
           },
           pageOfRefileErrorResults: this.state.pageOfRefileErrorResults,
+          displayFields: {
+            startDate: this.state.formFields.startDate,
+            endDate: this.state.formFields.endDate,
+          }
         });
       }).catch(error => {
         console.log('Form Error Response: ', error);
@@ -300,14 +308,18 @@ class RefileErrorsForm extends Component {
   }
 
   render() {
-    const itemStart = this.state.formFields.offset;
+    const itemStart = parseInt(this.state.formFields.offset, 10) + 1;
+    const itemEnd = ((itemStart + 24) >= this.state.refileErrorResultsTotal) ? this.state.refileErrorResultsTotal : itemStart + 24;
     const currentPage = this.state.pageOfRefileErrorResults;
+
+
     return (
       <div className={this.props.className} id={this.props.id}>
         <h3>Refile Errors</h3>
         <p>Enter dates below to see errors for a specific date range</p>
         {this.renderRefileErrorsFrom()}
         <div>
+          <p>Displaying {itemStart}-{itemEnd} of {this.state.refileErrorResultsTotal} errors from {this.state.displayFields.startDate}-{this.state.displayFields.endDate}</p>
           {this.renderRefileErrorResults()}
         </div>
         <button onClick={this.hitPageButtonPre}>Previous</button>
