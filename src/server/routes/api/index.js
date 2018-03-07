@@ -182,16 +182,16 @@ export function getRefileErrors(req, res, next) {
     }
   )
   .then(response => {
-    res.json({
-      status: 200,
-      count: limitQuery,
+    res.status(200)
+    .header('Content-Type', 'application/json')
+    .json({
       data: response
     });
   })
   .catch(error => {
-    res.json({
-      status: 400,
-      count: limitQuery,
+   res.status(500)
+    .header('Content-Type', 'application/json')
+    .json({
       data: error
     });
   });
