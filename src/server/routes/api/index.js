@@ -143,7 +143,6 @@ export function getRefileErrors(req, res, next) {
     }
   )
   .then(response => {
-    console.log(response.totalCount);
     res.json({
       status: 200,
       data: response

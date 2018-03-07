@@ -149,10 +149,7 @@ class RefileErrorsForm extends Component {
   }
 
   hitPageButtonNext() {
-    console.log(this.state.formFields.offset);
-    console.log(this.state.refileErrorResultsTotal);
-
-    if (parseInt(this.state.refileErrorResultsTotal, 10) <= parseInt(this.state.formFields.offset, 10)) {
+    if (parseInt(this.state.refileErrorResultsTotal, 10) <= parseInt(this.state.formFields.offset, 10) + 25) {
       return;
     }
 
