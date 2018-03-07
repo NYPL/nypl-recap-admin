@@ -114,6 +114,10 @@ export function handleSqsDataProcessing(sqsClient, type) {
   };
 }
 
+/**
+* constructDateQuery(dateInput, isEndDate = false)
+* @desc Builds the queries of the dates for sending to the API
+*/
 function constructDateQuery(dateInput, isEndDate = false) {
   const lastSecond = (isEndDate) ? 'T23:59:59' : '';
 
@@ -156,6 +160,15 @@ export function getRefileErrors(req, res, next) {
   const endDateQuery = constructDateQuery(req.body.endDate, true);
   const offsetQuery = req.body.offset;
   const limitQuery = 25;
+
+  // For the case the date inputs are not valid format or value
+  if (!startDateQuery || !endDateQuery) {
+    res.status(400)
+    .header('Content-Type', 'application/json')
+    .json({
+      message: 'Not valid date inputs.'
+    });
+  }
 
   const client = new NyplApiClient({
     base_url: 'https://dev-platform.nypl.org/api/v0.1/',
