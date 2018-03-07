@@ -116,18 +116,46 @@ export function handleSqsDataProcessing(sqsClient, type) {
 
 function constructDateQuery(dateInput, isEndDate = false) {
   const lastSecond = (isEndDate) ? 'T23:59:59' : '';
-  const dateArray = dateInput.split('/');
 
-  return `${dateArray[2]}-${dateArray[0]}-${dateArray[1]}${lastSecond}`;
+  if (dateInput && typeof dateInput === 'string') {
+    const dateArray = dateInput.split('/');
+
+    // Checks if it has a valid date format
+    if (!dateArray || dateArray.length !== 3) {
+      return undefined;
+    }
+
+    if (dateArray[0].length !== 2 || dateArray[1].length !== 2 || dateArray[2].length !== 4) {
+      return undefined;
+    }
+
+    // Checks if the month is valid
+    if (parseInt(dateArray[0], 10) < 1 || parseInt(dateArray[0], 10) > 12) {
+      return undefined;
+    }
+
+    // Checks if the date is valid
+    if (parseInt(dateArray[1], 10) < 1 || parseInt(dateArray[1], 10) > 31) {
+      return undefined;
+    }
+
+    return `${dateArray[2]}-${dateArray[0]}-${dateArray[1]}${lastSecond}`;
+  }
+
+  return undefined;
 }
 
+/**
+* getRefileErrors(req, res, next)
+* @desc Gets the refile error records from the API endpoint and returns it to the front end
+*/
 export function getRefileErrors(req, res, next) {
-    // The format of start date and end date should be YYYY-MM-DD
-    // end date should add one more date to get the full day data of the end date
-    const startDateQuery = constructDateQuery(req.body.startDate, false);
-    const endDateQuery = constructDateQuery(req.body.endDate, true);
-    const offsetQuery = req.body.offset;
-    const limitQuery = 25;
+  // The format of start date and end date should be YYYY-MM-DD
+  // end date should be send with specific time to indicate to the end of the date
+  const startDateQuery = constructDateQuery(req.body.startDate, false);
+  const endDateQuery = constructDateQuery(req.body.endDate, true);
+  const offsetQuery = req.body.offset;
+  const limitQuery = 25;
 
   const client = new NyplApiClient({
     base_url: 'https://dev-platform.nypl.org/api/v0.1/',
@@ -143,7 +171,6 @@ export function getRefileErrors(req, res, next) {
     }
   )
   .then(response => {
-    console.log(response.totalCount);
     res.json({
       status: 200,
       count: limitQuery,
