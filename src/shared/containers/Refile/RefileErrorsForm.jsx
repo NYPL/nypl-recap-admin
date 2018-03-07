@@ -134,7 +134,7 @@ class RefileErrorsForm extends Component {
 
   clickSubmit(event) {
     event.preventDefault();
-    this.handleFormSubmit();
+    this.handleFormSubmit(true);
   }
 
   hitPageButtonPre() {
@@ -173,7 +173,7 @@ class RefileErrorsForm extends Component {
   * based on successful or error responses
   * @param {object} event - contains the current event context of the field
   */
-  handleFormSubmit() {
+  handleFormSubmit(resetDates) {
     event.preventDefault();
 
     // TODO: execute validations here
@@ -188,9 +188,10 @@ class RefileErrorsForm extends Component {
         formFields: {
           startDate,
           endDate,
-          offset,
         }
       } = this.state;
+
+      const offset = resetDates ? 0 : this.state.offset;
 
       // Update the Parent Container Loading State
       this.props.setApplicationLoadingState(true);
@@ -215,9 +216,9 @@ class RefileErrorsForm extends Component {
           formFields: {
             startDate: this.state.formFields.startDate,
             endDate: this.state.formFields.endDate,
-            offset: this.state.formFields.offset,
+            offset,
           },
-          pageOfRefileErrorResults: this.state.pageOfRefileErrorResults,
+          pageOfRefileErrorResults: resetDates ? 1 : this.state.pageOfRefileErrorResults,
           displayFields: {
             startDate: this.state.formFields.startDate,
             endDate: this.state.formFields.endDate,
@@ -308,10 +309,12 @@ class RefileErrorsForm extends Component {
   }
 
   render() {
+    const totalResultCount =this.state.refileErrorResultsTotal;
     const itemStart = parseInt(this.state.formFields.offset, 10) + 1;
-    const itemEnd = ((itemStart + 24) >= this.state.refileErrorResultsTotal) ? this.state.refileErrorResultsTotal : itemStart + 24;
+    const itemEnd = ((itemStart + 24) >= totalResultCount) ? totalResultCount : itemStart + 24;
     const currentPage = this.state.pageOfRefileErrorResults;
-
+    const totalPageNumber = Math.ceil((parseInt(totalResultCount, 10) / 25));
+    const displayFields = this.state.displayFields;
 
     return (
       <div className={this.props.className} id={this.props.id}>
@@ -319,11 +322,11 @@ class RefileErrorsForm extends Component {
         <p>Enter dates below to see errors for a specific date range</p>
         {this.renderRefileErrorsFrom()}
         <div>
-          <p>Displaying {itemStart}-{itemEnd} of {this.state.refileErrorResultsTotal} errors from {this.state.displayFields.startDate}-{this.state.displayFields.endDate}</p>
+          <p>Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p>
           {this.renderRefileErrorResults()}
         </div>
         <button onClick={this.hitPageButtonPre}>Previous</button>
-        <p>Page {currentPage} of {Math.ceil((parseInt(this.state.refileErrorResultsTotal, 10) / 25))}</p>
+        <p>Page {currentPage} of {totalPageNumber}</p>
         <button onClick={this.hitPageButtonNext}>Next</button>
       </div>
     );
@@ -334,12 +337,14 @@ RefileErrorsForm.propTypes = {
   className: PropTypes.string,
   id: PropTypes.string,
   isFormProcessing: PropTypes.bool,
-  setApplicationLoadingState: PropTypes.func
+  setApplicationLoadingState: PropTypes.func,
 };
 
 RefileErrorsForm.defaultProps = {
   className: '',
-  id: ''
+  id: '',
+  isFormProcessing: false,
+  setApplicationLoadingState: () => {},
 };
 
 export default RefileErrorsForm;
