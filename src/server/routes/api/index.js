@@ -1,9 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import config from '../../../../config/appConfig';
 import NyplApiClient from '@nypl/nypl-data-api-client';
-// Read local .env file. The environment variables will be assigned with process.env in the beginning
-import dotEnv from 'dotenv';
-dotEnv.config();
 
 function constructApiHeaders(token = '') {
   return {
@@ -171,14 +168,15 @@ export function getRefileErrors(req, res, next) {
   }
 
   const client = new NyplApiClient({
-    base_url: 'https://dev-platform.nypl.org/api/v0.1/',
-    oauth_key: config.oauth.refileRequestId,
-    oauth_secret: process.env.REFILE_REQUEST_SECRET,
-    oauth_url: config.oauth.tokenUrlForNyplApiClient,
+    base_url: config.nyplMicroService.platformBaseUrl,
+    oauth_key: config.nyplMicroService.refileRequestId,
+    oauth_secret: config.nyplMicroService.refileRequestSecret,
+    oauth_url: config.nyplMicroService.tokenUrlForNyplApiClient,
   });
 
   client.get(
-    `recap/refile-requests?createdDate=[${startDateQuery},${endDateQuery}]&offset=${offsetQuery}&limit=${limitQuery}&includeTotalCount=true`,
+    `recap/refile-requests?createdDate=[${startDateQuery},${endDateQuery}]`+
+    `&offset=${offsetQuery}&limit=${limitQuery}&includeTotalCount=true`,
     {
       json: true,
     }
