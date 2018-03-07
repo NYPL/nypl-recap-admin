@@ -15,6 +15,7 @@ class RefileErrorsForm extends Component {
         startDate: moment().subtract(1, 'day').format('MM/DD/YYYY'),
         endDate: moment().format('MM/DD/YYYY'),
         offset: 0,
+        resultLimit: 25,
       },
       fieldErrors: {},
       formResult: {},
@@ -142,18 +143,23 @@ class RefileErrorsForm extends Component {
       return;
     }
 
+    const resultLimit = this.state.formFields.resultLimit;
+
     this.setState({
       formFields: {
         startDate: this.state.formFields.startDate,
         endDate: this.state.formFields.endDate,
-        offset: this.state.formFields.offset - 25,
+        offset: this.state.formFields.offset - resultLimit,
+        resultLimit: resultLimit,
       },
       pageOfRefileErrorResults: this.state.pageOfRefileErrorResults - 1
     }, () => { this.handleFormSubmit(); });
   }
 
   hitPageButtonNext() {
-    if (parseInt(this.state.refileErrorResultsTotal, 10) <= parseInt(this.state.formFields.offset, 10) + 25) {
+    const resultLimit = this.state.formFields.resultLimit;
+
+    if (parseInt(this.state.refileErrorResultsTotal, 10) <= parseInt(this.state.formFields.offset, 10) + resultLimit) {
       return;
     }
 
@@ -161,7 +167,8 @@ class RefileErrorsForm extends Component {
       formFields: {
         startDate: this.state.formFields.startDate,
         endDate: this.state.formFields.endDate,
-        offset: this.state.formFields.offset + 25,
+        offset: this.state.formFields.offset + resultLimit,
+        resultLimit: resultLimit,
       },
       pageOfRefileErrorResults: this.state.pageOfRefileErrorResults + 1
     }, () => { this.handleFormSubmit(); });
@@ -188,10 +195,11 @@ class RefileErrorsForm extends Component {
         formFields: {
           startDate,
           endDate,
+          resultLimit,
         }
       } = this.state;
 
-      const offset = resetDates ? 0 : this.state.offset;
+      const offset = resetDates ? 0 : this.state.formFields.offset;
 
       // Update the Parent Container Loading State
       this.props.setApplicationLoadingState(true);
@@ -203,6 +211,7 @@ class RefileErrorsForm extends Component {
           startDate,
           endDate,
           offset,
+          resultLimit,
         }
       ).then(response => {
         console.log('Form Successful Response: ', response);
@@ -217,6 +226,7 @@ class RefileErrorsForm extends Component {
             startDate: this.state.formFields.startDate,
             endDate: this.state.formFields.endDate,
             offset,
+            resultLimit,
           },
           pageOfRefileErrorResults: resetDates ? 1 : this.state.pageOfRefileErrorResults,
           displayFields: {
@@ -224,6 +234,7 @@ class RefileErrorsForm extends Component {
             endDate: this.state.formFields.endDate,
           }
         });
+
       }).catch(error => {
         console.log('Form Error Response: ', error);
         this.props.setApplicationLoadingState(false);
