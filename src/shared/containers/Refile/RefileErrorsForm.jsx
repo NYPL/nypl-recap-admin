@@ -134,6 +134,10 @@ class RefileErrorsForm extends Component {
   }
 
   hitPageButtonPre() {
+    if (parseInt(this.state.formFields.offset, 10) <= 0) {
+      return;
+    }
+
     this.setState({
       formFields: {
         startDate: this.state.formFields.startDate,
@@ -145,6 +149,13 @@ class RefileErrorsForm extends Component {
   }
 
   hitPageButtonNext() {
+    console.log(this.state.formFields.offset);
+    console.log(this.state.refileErrorResultsTotal);
+
+    if (parseInt(this.state.refileErrorResultsTotal, 10) <= parseInt(this.state.formFields.offset, 10)) {
+      return;
+    }
+
     this.setState({
       formFields: {
         startDate: this.state.formFields.startDate,
@@ -300,7 +311,6 @@ class RefileErrorsForm extends Component {
         <p>Enter dates below to see errors for a specific date range</p>
         {this.renderRefileErrorsFrom()}
         <div>
-          <p>Displaying 1-25 of {this.state.refileErrorResultsTotal} errors from {this.state.formFields.startDate}-{this.state.formFields.endDate}</p>
           {this.renderRefileErrorResults()}
         </div>
         <button onClick={this.hitPageButtonPre}>Previous</button>
