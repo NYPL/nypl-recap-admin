@@ -162,7 +162,6 @@ class UpdateMetadata extends Component {
       return axios.post('/update-metadata', {
         barcodes: correctBarcodes,
         protectCGD,
-        email: 'johndoe@example.com',
         action: type
       }).then(response => {
         console.log('Form Successful Response: ', response);
