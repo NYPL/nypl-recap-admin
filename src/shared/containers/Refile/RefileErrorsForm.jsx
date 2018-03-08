@@ -2,8 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import axios from  'axios';
 import isEmpty from 'lodash/isEmpty';
-import forIn from 'lodash/forIn';
-import map from 'lodash/map';
+import  { forIn, map } from 'lodash';
 import FormField from '../../components/FormField/FormField';
 import moment from 'moment';
 
