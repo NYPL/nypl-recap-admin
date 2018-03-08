@@ -324,7 +324,6 @@ class RefileErrorsForm extends Component {
       </table>
     ) : <p>There is no refile errors in the range of the selected dates.</p>;
 
-
     return resultContent;
   }
 
