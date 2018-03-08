@@ -220,7 +220,6 @@ class RefileErrorsForm extends Component {
           resultLimit,
         }
       ).then(response => {
-        console.log('Form Successful Response: ', response);
         this.props.setApplicationLoadingState(false);
 
         this.setState({
