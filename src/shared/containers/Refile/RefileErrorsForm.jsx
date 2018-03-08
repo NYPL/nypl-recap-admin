@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import axios from  'axios';
+import axios from 'axios';
 import isEmpty from 'lodash/isEmpty';
-import  { forIn, map } from 'lodash';
+import { map } from 'lodash';
 import FormField from '../../components/FormField/FormField';
 import moment from 'moment';
 
@@ -39,15 +39,42 @@ class RefileErrorsForm extends Component {
   }
 
   /**
-  * @desc Handles updating the state for the given field name based on the value changes
-  * @param {object} event - contains the current event context of the input field
+  * @desc Handles setting the passed field object property only it has not been defined in the
+  * fieldErrors object
+  * @param {string} field - the string name of the fieldErrors property
+  * @param {object} state - the current state object
+  * @param {string} errorString - the string representation for the error field to be presented in
+  * the UI (default: Required field)
   */
-  handleInputChange(event) {
-    const target = event.target;
-    const value = target.value;
-    const name = target.name;
+  setFieldError(field, state, errorString = 'Required field') {
+    const currentState = state;
 
-    this.setState({ formFields: {...this.state.formFields, [name]: value} });
+    if (typeof currentState.fieldErrors === 'object' && isEmpty(currentState.fieldErrors[field])) {
+      currentState.fieldErrors[field] = errorString;
+    }
+  }
+
+  /**
+  * @desc Handles deleting the passed state object property only if defined
+  * @param {string} field - the string name of the fieldErrors property
+  * @param {object} state - the current state object
+  */
+  removeFieldError(field, state) {
+    const currentState = state;
+    // Only remove and update state existing field errors
+    if (currentState.fieldErrors[field]) {
+      delete currentState.fieldErrors[field];
+    }
+  }
+
+  /**
+  * @desc Handles executing the focus() function for the given fieldName React ref instance
+  * @param {string} fieldName - the ref string name
+  */
+  focusOnField(fieldName) {
+    if (this[fieldName]) {
+      this[fieldName].focus();
+    }
   }
 
   /**
@@ -67,42 +94,15 @@ class RefileErrorsForm extends Component {
   }
 
   /**
-  * @desc Handles executing the focus() function for the given fieldName React ref instance
-  * @param {string} fieldName - the ref string name
+  * @desc Handles updating the state for the given field name based on the value changes
+  * @param {object} event - contains the current event context of the input field
   */
-  focusOnField(fieldName) {
-    if (this[fieldName]) {
-      this[fieldName].focus();
-    }
-  }
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
 
-  /**
-  * @desc Handles deleting the passed state object property only if defined
-  * @param {string} field - the string name of the fieldErrors property
-  * @param {object} state - the current state object
-  */
-  removeFieldError(field, state) {
-    const currentState = state;
-    // Only remove and update state existing field errors
-    if (currentState.fieldErrors[field]) {
-      delete currentState.fieldErrors[field];
-    }
-  }
-
-  /**
-  * @desc Handles setting the passed field object property only it has not been defined in the
-  * fieldErrors object
-  * @param {string} field - the string name of the fieldErrors property
-  * @param {object} state - the current state object
-  * @param {string} errorString - the string representation for the error field to be presented in
-  * the UI (default: Required field)
-  */
-  setFieldError(field, state, errorString = 'Required field') {
-    const currentState = state;
-
-    if (typeof currentState.fieldErrors === 'object' && isEmpty(currentState.fieldErrors[field])) {
-      currentState.fieldErrors[field] = errorString;
-    }
+    this.setState({ formFields: {...this.state.formFields, [name]: value} });
   }
 
   /**
@@ -142,14 +142,15 @@ class RefileErrorsForm extends Component {
   }
 
   /**
-  * @desc When the pagination button is clicked, it handles the event and executes handleFormSubmit()
+  * @desc When the pagination button is clicked, it handles the event and executes
+  * handleFormSubmit()
   * @param {string} type - indicates if it is previous button or next button has been clicked
   */
   hitPageButton(type) {
     event.preventDefault();
 
-    let resultLimit =  this.state.formFields.resultLimit;
-    let pageIncrement = 1;
+    const resultLimit = this.state.formFields.resultLimit;
+    const pageIncrement = 1;
     const offsetInt = parseInt(this.state.formFields.offset, 10);
 
     // Set new state values based on the results from the new request
@@ -161,9 +162,10 @@ class RefileErrorsForm extends Component {
           startDate: this.state.formFields.startDate,
           endDate: this.state.formFields.endDate,
           offset: this.state.formFields.offset + resultLimit * pageDifference,
-          resultLimit: resultLimit,
+          resultLimit,
         },
-        pageOfRefileErrorResults: this.state.pageOfRefileErrorResults + pageIncrement * pageDifference
+        pageOfRefileErrorResults:
+          this.state.pageOfRefileErrorResults + pageIncrement * pageDifference,
       }, () => { this.handleFormSubmit(); });
     };
 
@@ -184,8 +186,8 @@ class RefileErrorsForm extends Component {
 
   /**
   * @desc Handles sending the form field payload from the state to the proper API endpoint. All
-  * fields are validated prior to executing the ajax call. Updates the form state booleans and result
-  * based on successful or error responses
+  * fields are validated prior to executing the ajax call. Updates the form state booleans and
+  * result based on successful or error responses
   * @param {object} event - contains the current event context of the field
   */
   handleFormSubmit(resetDates) {
@@ -197,12 +199,11 @@ class RefileErrorsForm extends Component {
 
     if (isEmpty(this.state.fieldErrors)) {
       const {
-        type,
         formFields: {
           startDate,
           endDate,
           resultLimit,
-        }
+        },
       } = this.state;
 
       const offset = resetDates ? 0 : this.state.formFields.offset;
@@ -237,9 +238,8 @@ class RefileErrorsForm extends Component {
           displayFields: {
             startDate: this.state.formFields.startDate,
             endDate: this.state.formFields.endDate,
-          }
+          },
         });
-
       }).catch(error => {
         console.log('Form Error Response: ', error);
         this.props.setApplicationLoadingState(false);
@@ -252,7 +252,7 @@ class RefileErrorsForm extends Component {
   * @desc Handles returning the correct DOM for the Refile Errors form
   */
   renderRefileErrorsFrom() {
-    return(
+    return (
       <form onSubmit={this.clickSubmit}>
         <FormField
           className="nypl-text-field"
@@ -263,7 +263,6 @@ class RefileErrorsForm extends Component {
           instructionText="Please enter a date as the follow format MM/DD/YYYY"
           value={this.state.formFields.startDate}
           handleOnChange={this.handleInputChange}
-          handleOnBlur={this.props.handleInputBlur}
           errorField={this.state.fieldErrors.startDate}
           fieldRef={(input) => { this.startDate = input; }}
           isRequired
@@ -278,7 +277,6 @@ class RefileErrorsForm extends Component {
           instructionText="Please enter a date as the follow format MM/DD/YYYY"
           value={this.state.formFields.endDate}
           handleOnChange={this.handleInputChange}
-          handleOnBlur={this.handleInputBlur}
           errorField={this.state.fieldErrors.endDate}
           fieldRef={(input) => { this.endDate = input; }}
           isRequired
@@ -328,7 +326,7 @@ class RefileErrorsForm extends Component {
   }
 
   render() {
-    const totalResultCount =this.state.refileErrorResultsTotal;
+    const totalResultCount = this.state.refileErrorResultsTotal;
     const itemStart = parseInt(this.state.formFields.offset, 10) + 1;
     const itemEnd = ((itemStart + 24) >= totalResultCount) ? totalResultCount : itemStart + 24;
     const currentPage = this.state.pageOfRefileErrorResults;
