@@ -307,7 +307,7 @@ class RefileErrorsForm extends Component {
         </tr>
       ) : null;
 
-    return (
+    const resultContent = (itemRows) ? (
       <table>
         <caption className="hidden">Refile Error Details</caption>
         <thead>
@@ -322,7 +322,10 @@ class RefileErrorsForm extends Component {
           {itemRows}
         </tbody>
       </table>
-    );
+    ) : <p>There is no refile errors in the range of the selected dates.</p>;
+
+
+    return resultContent;
   }
 
   render() {
@@ -332,6 +335,15 @@ class RefileErrorsForm extends Component {
     const currentPage = this.state.pageOfRefileErrorResults;
     const totalPageNumber = Math.ceil((parseInt(totalResultCount, 10) / 25));
     const displayFields = this.state.displayFields;
+    const displayingText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
+      <p>Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p> :
+      null;
+    const pageText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
+      <p>Page {currentPage} of {totalPageNumber}</p> : null;
+    const preButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
+      <button onClick={() => this.hitPageButton('pre')}>Previous</button> : null;
+    const nextButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
+      <button onClick={() => this.hitPageButton('next')}>Next</button> : null;
 
     return (
       <div className={this.props.className} id={this.props.id}>
@@ -339,12 +351,12 @@ class RefileErrorsForm extends Component {
         <p>Enter dates below to see errors for a specific date range</p>
         {this.renderRefileErrorsFrom()}
         <div>
-          <p>Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p>
+          {displayingText}
           {this.renderRefileErrorResults()}
         </div>
-        <button onClick={() => this.hitPageButton('pre')}>Previous</button>
-        <p>Page {currentPage} of {totalPageNumber}</p>
-        <button onClick={() => this.hitPageButton('next')}>Next</button>
+        {preButton}
+        {pageText}
+        {nextButton}
       </div>
     );
   }
