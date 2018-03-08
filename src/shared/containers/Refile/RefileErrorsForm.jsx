@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import axios from  'axios';
 import isEmpty from 'lodash/isEmpty';
 import forIn from 'lodash/forIn';
+import map from 'lodash/map';
 import FormField from '../../components/FormField/FormField';
 import moment from 'moment';
-import { map as _map } from 'underscore';
 
 class RefileErrorsForm extends Component {
   constructor(props) {
@@ -32,8 +32,7 @@ class RefileErrorsForm extends Component {
     this.handleInputBlur = this.handleInputBlur.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.clickSubmit = this.clickSubmit.bind(this);
-    this.hitPageButtonPre = this.hitPageButtonPre.bind(this);
-    this.hitPageButtonNext = this.hitPageButtonNext.bind(this);
+    this.hitPageButton = this.hitPageButton.bind(this);
   }
 
   componentDidMount() {
@@ -48,6 +47,7 @@ class RefileErrorsForm extends Component {
     const target = event.target;
     const value = target.value;
     const name = target.name;
+
     this.setState({ formFields: {...this.state.formFields, [name]: value} });
   }
 
@@ -133,45 +133,54 @@ class RefileErrorsForm extends Component {
     }
   }
 
+  /**
+  * @desc When the submit button is clicked, it handles the event and executes handleFormSubmit()
+  * @param {event} event - the click event
+  */
   clickSubmit(event) {
     event.preventDefault();
     this.handleFormSubmit(true);
   }
 
-  hitPageButtonPre() {
-    if (parseInt(this.state.formFields.offset, 10) <= 0) {
-      return;
+  /**
+  * @desc When the pagination button is clicked, it handles the event and executes handleFormSubmit()
+  * @param {string} type - indicates if it is previous button or next button has been clicked
+  */
+  hitPageButton(type) {
+    event.preventDefault();
+
+    let resultLimit =  this.state.formFields.resultLimit;
+    let pageIncrement = 1;
+    const offsetInt = parseInt(this.state.formFields.offset, 10);
+
+    // Set new state values based on the results from the new request
+    const setStateForPagination = () => {
+      const pageDifference = (type === 'pre') ? -1 : 1;
+
+      this.setState({
+        formFields: {
+          startDate: this.state.formFields.startDate,
+          endDate: this.state.formFields.endDate,
+          offset: this.state.formFields.offset + resultLimit * pageDifference,
+          resultLimit: resultLimit,
+        },
+        pageOfRefileErrorResults: this.state.pageOfRefileErrorResults + pageIncrement * pageDifference
+      }, () => { this.handleFormSubmit(); });
+    };
+
+    if (type === 'pre') {
+      if (offsetInt <= 0) {
+        return;
+      }
+
+      setStateForPagination();
+    } else {
+      if (parseInt(this.state.refileErrorResultsTotal, 10) <= offsetInt + resultLimit) {
+        return;
+      }
+
+      setStateForPagination();
     }
-
-    const resultLimit = this.state.formFields.resultLimit;
-
-    this.setState({
-      formFields: {
-        startDate: this.state.formFields.startDate,
-        endDate: this.state.formFields.endDate,
-        offset: this.state.formFields.offset - resultLimit,
-        resultLimit: resultLimit,
-      },
-      pageOfRefileErrorResults: this.state.pageOfRefileErrorResults - 1
-    }, () => { this.handleFormSubmit(); });
-  }
-
-  hitPageButtonNext() {
-    const resultLimit = this.state.formFields.resultLimit;
-
-    if (parseInt(this.state.refileErrorResultsTotal, 10) <= parseInt(this.state.formFields.offset, 10) + resultLimit) {
-      return;
-    }
-
-    this.setState({
-      formFields: {
-        startDate: this.state.formFields.startDate,
-        endDate: this.state.formFields.endDate,
-        offset: this.state.formFields.offset + resultLimit,
-        resultLimit: resultLimit,
-      },
-      pageOfRefileErrorResults: this.state.pageOfRefileErrorResults + 1
-    }, () => { this.handleFormSubmit(); });
   }
 
   /**
@@ -181,8 +190,6 @@ class RefileErrorsForm extends Component {
   * @param {object} event - contains the current event context of the field
   */
   handleFormSubmit(resetDates) {
-    event.preventDefault();
-
     // TODO: execute validations here
     // Iterate through patron fields and ensure all fields are valid
     // forIn(this.state.formFields, (value, key) => {
@@ -292,7 +299,7 @@ class RefileErrorsForm extends Component {
 
   renderRefileErrorResults() {
     const itemRows = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      this.state.refileErrorResults.map((item, i) =>
+      map(this.state.refileErrorResults, (item, i) =>
         <tr key={i}>
           <td>{item.id}</td>
           <td>{item.itemBarcode}</td>
@@ -336,9 +343,9 @@ class RefileErrorsForm extends Component {
           <p>Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p>
           {this.renderRefileErrorResults()}
         </div>
-        <button onClick={this.hitPageButtonPre}>Previous</button>
+        <button onClick={() => this.hitPageButton('pre')}>Previous</button>
         <p>Page {currentPage} of {totalPageNumber}</p>
-        <button onClick={this.hitPageButtonNext}>Next</button>
+        <button onClick={() => this.hitPageButton('next')}>Next</button>
       </div>
     );
   }

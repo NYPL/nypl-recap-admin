@@ -22,7 +22,7 @@ export default {
   },
   nyplMicroService: {
     tokenUrlForNyplApiClient: process.env.TOKEN_URL_FOR_NYPL_API_CLIENT,
-    platformBaseUrl: process.env.PLATFORM_BASE_URL,
+    platformBaseUrl: process.env.NODE_ENV === 'production' ? process.env.PLATFORM_BASE_URL : process.env.DEV_PLATFORM_BASE_URL,
     refileRequestId: process.env.REFILE_REQUEST_ID || 'refile_request_service',
     refileRequestSecret: process.env.REFILE_REQUEST_SECRET,
   },
