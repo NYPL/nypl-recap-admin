@@ -295,6 +295,9 @@ class RefileErrorsForm extends Component {
     );
   }
 
+  /**
+  * @desc Renders the results of refile errors
+  */
   renderRefileErrorResults() {
     const itemRows = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       map(this.state.refileErrorResults, (item, i) =>
