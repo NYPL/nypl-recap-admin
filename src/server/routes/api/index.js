@@ -1,5 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
 import config from '../../../../config/appConfig';
+import NyplApiClient from '@nypl/nypl-data-api-client';
+// Read local .env file. The environment variables will be assigned with process.env in the beginning
+import dotEnv from 'dotenv';
 
 function constructApiHeaders(token = '') {
   return {
@@ -108,4 +111,37 @@ export function handleSqsDataProcessing(sqsClient, type) {
       });
     });
   };
+}
+
+export function getRefileErrors(req, res, next) {
+  // Read local .env file. The environment variables will be assigned with process.env in the beginning
+  dotEnv.config();
+
+  const client = new NyplApiClient({
+    base_url: 'https://dev-platform.nypl.org/api/v0.1/',
+    oauth_key: config.oauth.refileRequestId,
+    oauth_secret: process.env.REFILE_REQUEST_SECRET,
+    oauth_url: config.oauth.tokenUrlForNyplApiClient,
+  });
+
+  client.get(
+    'recap/refile-requests?createdDate=[2018-02-01,2018-03-03]&offset=0&limit=25',
+    {
+      json: true,
+    }
+  )
+  .then(response => {
+    res.json({
+      status: 200,
+      count: 25,
+      data: response
+    });
+  })
+  .catch(error => {
+    res.json({
+      status: 400,
+      count: 25,
+      data: error
+    });
+  });
 }

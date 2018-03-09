@@ -86,6 +86,7 @@ class FormField extends Component {
         maxLength={this.props.maxLength || null}
         onBlur={this.props.handleOnBlur}
         ref={this.props.fieldRef}
+        placeholder={this.props.placeholder || null}
       />
     );
   }

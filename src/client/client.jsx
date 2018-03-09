@@ -7,15 +7,13 @@ import routes from '../shared/routes';
 // Styles
 import './styles/main.scss';
 
-const AppRouter = () => {
-  return (
-    <BrowserRouter>
-      {renderRoutes(routes)}
-    </BrowserRouter>
-  );
-}
-
 window.onload = () => {
   require('wicg-inert');
-  hydrate(<AppRouter />, document.getElementById('nypl-recap-admin'));
+
+  hydrate(
+    <BrowserRouter>
+      {renderRoutes(routes)}
+    </BrowserRouter>,
+    document.getElementById('nypl-recap-admin')
+  );
 };

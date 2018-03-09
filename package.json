@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@nypl/design-toolkit": "0.1.33",
+    "@nypl/nypl-data-api-client": "0.2.5",
     "aws-sdk": "2.188.0",
     "axios": "0.14.0",
     "babel-core": "6.26.0",
@@ -47,6 +48,7 @@
     "connect-ensure-login": "0.1.1",
     "cookie-parser": "1.4.3",
     "css-loader": "0.28.7",
+    "dotenv": "5.0.1",
     "ejs": "2.5.5",
     "express": "4.13.1",
     "express-session": "1.15.6",

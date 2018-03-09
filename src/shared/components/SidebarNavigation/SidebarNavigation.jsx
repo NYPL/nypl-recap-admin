@@ -14,6 +14,11 @@ const SidebarNavigation = ({ className = '' }) => (
           Transfer Barcode & Update Metadata
         </NavLink>
       </li>
+      <li>
+        <NavLink to="/refile" activeClassName="active">
+          Refile
+        </NavLink>
+      </li>
     </ul>
   </nav>
 )
