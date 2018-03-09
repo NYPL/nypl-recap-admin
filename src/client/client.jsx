@@ -7,14 +7,6 @@ import routes from '../shared/routes';
 // Styles
 import './styles/main.scss';
 
-const Root = ({ store }) => {
-  return (
-    <BrowserRouter>
-      {renderRoutes(routes)}
-    </BrowserRouter>
-  );
-}
-
 window.onload = () => {
   require('wicg-inert');
 
