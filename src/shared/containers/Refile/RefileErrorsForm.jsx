@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import isEmpty from 'lodash/isEmpty';
-import { map } from 'lodash';
+import { forIn, map } from 'lodash';
 import FormField from '../../components/FormField/FormField';
 import moment from 'moment';
 
@@ -50,7 +50,11 @@ class RefileErrorsForm extends Component {
     const currentState = state;
 
     if (typeof currentState.fieldErrors === 'object' && isEmpty(currentState.fieldErrors[field])) {
-      currentState.fieldErrors[field] = errorString;
+      this.setState({
+        fieldErrors: {
+          [field]: errorString
+        }
+      });
     }
   }
 
@@ -105,29 +109,63 @@ class RefileErrorsForm extends Component {
     this.setState({ formFields: {...this.state.formFields, [name]: value} });
   }
 
+  isDateValid(date) {
+    if (!date) {
+      return false;
+    }
+
+    const dateArray = date.split('/');
+    const date_matches = date.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
+
+    if (!date_matches) {
+      return false;
+    }
+
+    if (dateArray[0].length !== 2 || dateArray[1].length !== 2 || dateArray[2].length !== 4) {
+        return false;
+      }
+
+    // Checks if the month is valid
+    if (parseInt(dateArray[0], 10) < 1 || parseInt(dateArray[0], 10) > 12) {
+      return false;
+    }
+
+    // Checks if the date is valid
+    if (parseInt(dateArray[1], 10) < 1 || parseInt(dateArray[1], 10) > 31) {
+      return false;
+    }
+
+    return true;
+  }
+
   /**
   * @desc Handles validating the given fieldName based on the validation rules for the type of input
   * @param {string} fieldName - the string name of the input field
   * @param {object} state - the current state object
-  * @param {boolean} focusOnError - flag utilized to execute focusOnField() if true (default: false)
   */
-  validateField(fieldName, state, focusOnError = false) {
+  validateField(fieldName, state) {
     switch (fieldName) {
       case 'startDate':
-        // TODO: implement validations, make sure 1) there's value; 2) the value is in the valid format
+        if (!this.isDateValid(state.formFields[fieldName])) {
+          this.setFieldError(fieldName, state, 'Please enter the date following the format MM/DD/YYYY');
+
+          return fieldName;
+
+        } else {
+          this.removeFieldError(fieldName, state);
+        }
         break;
       case 'endDate':
-        // TODO: implement validations, make sure 1) there's value; 2) the value is in the valid format
-        // if (!isBarcodeValid(state.formFields[fieldName])) {
-        //   this.setFieldError(fieldName, state, 'The barcode field must be 14 numerical characters');
-        //   if (focusOnError === true) {
-        //     this.focusOnField(fieldName);
-        //   }
-        // } else {
-        //   this.removeFieldError(fieldName, state);
-        // }
+        if (!this.isDateValid(state.formFields[fieldName])) {
+          this.setFieldError(fieldName, state, 'Please enter the date following the format MM/DD/YYYY');
+
+          return fieldName;
+        } else {
+          this.removeFieldError(fieldName, state);
+        }
         break;
       default:
+        return;
         break;
     }
   }
@@ -191,11 +229,17 @@ class RefileErrorsForm extends Component {
   * @param {object} event - contains the current event context of the field
   */
   handleFormSubmit(resetDates) {
-    // TODO: execute validations here
+    let fieldErrorsArray = [];
+
     // Iterate through patron fields and ensure all fields are valid
-    // forIn(this.state.formFields, (value, key) => {
-    //   this.validateField(key, this.state, true);
-    // });
+    forIn(this.state.formFields, (value, key) => {
+      fieldErrorsArray.push(this.validateField(key, this.state, true));
+
+    });
+
+    if (fieldErrorsArray.length) {
+      this.focusOnField(fieldErrorsArray[0]);
+    }
 
     if (isEmpty(this.state.fieldErrors)) {
       const {
@@ -243,7 +287,11 @@ class RefileErrorsForm extends Component {
       }).catch(error => {
         console.log('Form Error Response: ', error);
         this.props.setApplicationLoadingState(false);
-        this.setState({...this.state, formResult: { processed: false, response: error } });
+        this.setState({
+          ...this.state,
+          formResult: { processed: false, response: error },
+          refileErrorResults: [],
+        });
       });
     }
   }
@@ -260,7 +308,7 @@ class RefileErrorsForm extends Component {
           type="text"
           label="StartDate"
           fieldName="startDate"
-          instructionText="Please enter a date as the follow format MM/DD/YYYY"
+          instructionText="The start date as the format as MM/DD/YYYY"
           value={this.state.formFields.startDate}
           handleOnChange={this.handleInputChange}
           errorField={this.state.fieldErrors.startDate}
@@ -274,7 +322,7 @@ class RefileErrorsForm extends Component {
           type="text"
           label="EndDate"
           fieldName="endDate"
-          instructionText="Please enter a date as the follow format MM/DD/YYYY"
+          instructionText="The end date as the format as MM/DD/YYYY"
           value={this.state.formFields.endDate}
           handleOnChange={this.handleInputChange}
           errorField={this.state.fieldErrors.endDate}
@@ -297,6 +345,13 @@ class RefileErrorsForm extends Component {
   * @desc Renders the results of refile errors
   */
   renderRefileErrorResults() {
+    let resultContent = '';
+
+    if (this.state.formResult.response) {
+      resultContent = <p>The input dates have invlaid format or value, please check again.</p>;
+      return resultContent;
+    }
+
     const itemRows = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       map(this.state.refileErrorResults, (item, i) =>
         <tr key={i}>
@@ -307,7 +362,7 @@ class RefileErrorsForm extends Component {
         </tr>
       ) : null;
 
-    const resultContent = (itemRows) ? (
+    resultContent = (itemRows) ? (
       <table>
         <caption className="hidden">Refile Error Details</caption>
         <thead>

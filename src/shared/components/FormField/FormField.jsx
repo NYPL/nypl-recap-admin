@@ -93,6 +93,7 @@ class FormField extends Component {
 
   render() {
     const errorClass = !isEmpty(this.props.errorField) ? 'nypl-field-error' : '';
+
     return (
       <div className={`${this.props.className} ${errorClass}`}>
         {this.props.type === 'checkbox' ? this.renderInputField(this.props.type) : this.renderLabel()}
