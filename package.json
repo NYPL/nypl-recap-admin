@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@nypl/design-toolkit": "0.1.33",
-    "@nypl/nypl-data-api-client": "0.2.5",
+    "@nypl/nypl-data-api-client": "1.0.0",
     "aws-sdk": "2.188.0",
     "axios": "0.14.0",
     "babel-core": "6.26.0",

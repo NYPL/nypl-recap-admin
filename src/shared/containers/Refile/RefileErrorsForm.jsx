@@ -12,6 +12,7 @@ class RefileErrorsForm extends Component {
       formFields: {
         startDate: '',
         endDate: '',
+        offset: 0,
       },
       fieldErrors: {},
       formResult: {}
@@ -136,20 +137,20 @@ class RefileErrorsForm extends Component {
         formFields: {
           startDate,
           endDate,
+          offset,
         }
       } = this.state;
 
       // Update the Parent Container Loading State
       this.props.setApplicationLoadingState(true);
 
+      // The format of start date and end date should be MM/DD/YYYY
       return axios.post(
         '/get-refile-errors',
         {
           startDate,
           endDate,
-        },
-        {
-          headers: { 'csrf-token': this.state.csrfToken }
+          offset,
         }
       ).then(response => {
         console.log('Form Successful Response: ', response);
