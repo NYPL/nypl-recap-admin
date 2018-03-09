@@ -28,7 +28,7 @@ const viewsPath = path.resolve(rootPath, 'src/server/views');
 const isProduction = process.env.NODE_ENV === 'production';
 const { applicationPort, sqs, oauth, publicKey } = appConfig;
 // AWS SQS Configuration
-aws.config.update({ region: sqs.region });
+aws.config.update({ region: process.env.SQS_REGION });
 const sqsClient = new aws.SQS({ apiVersion: '2012-11-05' });
 
 /* Express Server Configurations
