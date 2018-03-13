@@ -121,12 +121,11 @@ function constructDateQuery(dateInput, isEndDate = false) {
   if (dateInput && typeof dateInput === 'string') {
     const dateArray = dateInput.split('/');
 
-    // Checks if it has a valid date format
-    if (!dateArray || dateArray.length !== 3) {
-      return undefined;
-    }
+    // Checks if it has a valid date format. The Regex check if the inputs are digits
+    // and if they have right number of digits
+    const date_matches = dateInput.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
 
-    if (dateArray[0].length !== 2 || dateArray[1].length !== 2 || dateArray[2].length !== 4) {
+    if (!date_matches) {
       return undefined;
     }
 
