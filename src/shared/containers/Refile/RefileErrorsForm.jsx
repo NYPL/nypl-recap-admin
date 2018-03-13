@@ -332,7 +332,7 @@ class RefileErrorsForm extends Component {
     let resultContent = '';
 
     if (this.state.formResult.response) {
-      resultContent = <p>The input dates have invlaid format or value, please check again.</p>;
+      resultContent = <p>The input dates have invalid format or value, please check again.</p>;
       return resultContent;
     }
 
