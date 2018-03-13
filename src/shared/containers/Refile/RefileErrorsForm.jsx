@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import isEmpty from 'lodash/isEmpty';
-import { forIn, map } from 'lodash';
+import { forIn, map, assign } from 'lodash';
 import FormField from '../../components/FormField/FormField';
 import moment from 'moment';
 
@@ -28,7 +28,6 @@ class RefileErrorsForm extends Component {
     };
     this.baseState = this.state;
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleInputBlur = this.handleInputBlur.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.clickSubmit = this.clickSubmit.bind(this);
     this.hitPageButton = this.hitPageButton.bind(this);
@@ -50,10 +49,10 @@ class RefileErrorsForm extends Component {
     const currentState = state;
 
     if (typeof currentState.fieldErrors === 'object' && isEmpty(currentState.fieldErrors[field])) {
+      const currentFieldErrorsState = assign(currentState.fieldErrors, { [field]: errorString });
+
       this.setState({
-        fieldErrors: {
-          [field]: errorString
-        }
+        fieldErrors: currentFieldErrorsState,
       });
     }
   }
@@ -68,6 +67,10 @@ class RefileErrorsForm extends Component {
     // Only remove and update state existing field errors
     if (currentState.fieldErrors[field]) {
       delete currentState.fieldErrors[field];
+
+      this.setState({
+        fieldErrors: currentState.fieldErrors,
+      });
     }
   }
 
@@ -82,22 +85,6 @@ class RefileErrorsForm extends Component {
   }
 
   /**
-  * @desc Handles updating the state based on the validation function executed in the setState
-  * anonymous function.
-  * @param {object} event - contains the current event context of the input field
-  */
-  handleInputBlur(event) {
-    const { target, type } = event;
-    const name = target.name;
-
-    // React pattern to handle asynchronous state changes
-    this.setState(prevState => {
-      this.validateField(name, prevState);
-      return prevState;
-    });
-  }
-
-  /**
   * @desc Handles updating the state for the given field name based on the value changes
   * @param {object} event - contains the current event context of the input field
   */
@@ -109,21 +96,23 @@ class RefileErrorsForm extends Component {
     this.setState({ formFields: {...this.state.formFields, [name]: value} });
   }
 
+  /**
+  * @desc Validates the input
+  * @param {string} date - the string of the input value
+  */
   isDateValid(date) {
     if (!date) {
       return false;
     }
 
     const dateArray = date.split('/');
-    const date_matches = date.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
+    // Checks if it has a valid date format. The Regex check if the inputs are digits
+    // and if they have right number of digits
+    const dateMatches = date.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
 
-    if (!date_matches) {
+    if (!dateMatches) {
       return false;
     }
-
-    if (dateArray[0].length !== 2 || dateArray[1].length !== 2 || dateArray[2].length !== 4) {
-        return false;
-      }
 
     // Checks if the month is valid
     if (parseInt(dateArray[0], 10) < 1 || parseInt(dateArray[0], 10) > 12) {
@@ -144,30 +133,21 @@ class RefileErrorsForm extends Component {
   * @param {object} state - the current state object
   */
   validateField(fieldName, state) {
-    switch (fieldName) {
-      case 'startDate':
-        if (!this.isDateValid(state.formFields[fieldName])) {
-          this.setFieldError(fieldName, state, 'Please enter the date following the format MM/DD/YYYY');
+    if (fieldName === 'startDate' || fieldName === 'endDate') {
+      if (!this.isDateValid(state.formFields[fieldName])) {
+        this.setFieldError(
+          fieldName, state,
+          'Please enter the date following the format MM/DD/YYYY'
+        );
 
-          return fieldName;
+        return fieldName;
+      }
 
-        } else {
-          this.removeFieldError(fieldName, state);
-        }
-        break;
-      case 'endDate':
-        if (!this.isDateValid(state.formFields[fieldName])) {
-          this.setFieldError(fieldName, state, 'Please enter the date following the format MM/DD/YYYY');
-
-          return fieldName;
-        } else {
-          this.removeFieldError(fieldName, state);
-        }
-        break;
-      default:
-        return;
-        break;
+      // If no errors anymore, removes the error from the state
+      this.removeFieldError(fieldName, state);
     }
+
+    return;
   }
 
   /**
@@ -223,25 +203,28 @@ class RefileErrorsForm extends Component {
   }
 
   /**
-  * @desc Handles sending the form field payload from the state to the proper API endpoint. All
+  * @desc Handle sending the form field payload from the state to the proper API endpoint. All
   * fields are validated prior to executing the ajax call. Updates the form state booleans and
   * result based on successful or error responses
-  * @param {object} event - contains the current event context of the field
+  * @param {boolean} resetOffset - if the request is from a new range of dates, we show the results
+  * from the first page
   */
-  handleFormSubmit(resetDates) {
-    let fieldErrorsArray = [];
+  handleFormSubmit(resetOffset) {
+    // The array that stores the results after validating the date inputs
+    const fieldErrorsArray = [];
 
-    // Iterate through patron fields and ensure all fields are valid
+    // Iterate through date fields and ensure all fields are valid
     forIn(this.state.formFields, (value, key) => {
-      fieldErrorsArray.push(this.validateField(key, this.state, true));
-
+      if (this.validateField(key, this.state)) {
+        fieldErrorsArray.push(this.validateField(key, this.state));
+      }
     });
 
     if (fieldErrorsArray.length) {
       this.focusOnField(fieldErrorsArray[0]);
     }
 
-    if (isEmpty(this.state.fieldErrors)) {
+    if (!fieldErrorsArray.length) {
       const {
         formFields: {
           startDate,
@@ -250,7 +233,7 @@ class RefileErrorsForm extends Component {
         },
       } = this.state;
 
-      const offset = resetDates ? 0 : this.state.formFields.offset;
+      const offset = resetOffset ? 0 : this.state.formFields.offset;
 
       // Update the Parent Container Loading State
       this.props.setApplicationLoadingState(true);
@@ -278,7 +261,7 @@ class RefileErrorsForm extends Component {
             offset,
             resultLimit,
           },
-          pageOfRefileErrorResults: resetDates ? 1 : this.state.pageOfRefileErrorResults,
+          pageOfRefileErrorResults: resetOffset ? 1 : this.state.pageOfRefileErrorResults,
           displayFields: {
             startDate: this.state.formFields.startDate,
             endDate: this.state.formFields.endDate,
@@ -286,6 +269,7 @@ class RefileErrorsForm extends Component {
         });
       }).catch(error => {
         console.log('Form Error Response: ', error);
+
         this.props.setApplicationLoadingState(false);
         this.setState({
           ...this.state,
