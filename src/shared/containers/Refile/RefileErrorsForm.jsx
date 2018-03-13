@@ -11,8 +11,8 @@ class RefileErrorsForm extends Component {
     super(props);
     this.state = {
       formFields: {
-        startDate: moment().subtract(1, 'day').format('MM/DD/YYYY'),
-        endDate: moment().format('MM/DD/YYYY'),
+        startDate: moment().subtract(1, 'day').format('YYYY-MM-DD'),
+        endDate: moment().format('YYYY-MM-DD'),
         offset: 0,
         resultLimit: 25,
       },
@@ -105,22 +105,22 @@ class RefileErrorsForm extends Component {
       return false;
     }
 
-    const dateArray = date.split('/');
+    const dateArray = date.split('-');
     // Checks if it has a valid date format. The Regex check if the inputs are digits
     // and if they have right number of digits
-    const dateMatches = date.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
+    const dateMatches = date.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
 
     if (!dateMatches) {
       return false;
     }
 
     // Checks if the month is valid
-    if (parseInt(dateArray[0], 10) < 1 || parseInt(dateArray[0], 10) > 12) {
+    if (parseInt(dateArray[1], 10) < 1 || parseInt(dateArray[1], 10) > 12) {
       return false;
     }
 
     // Checks if the date is valid
-    if (parseInt(dateArray[1], 10) < 1 || parseInt(dateArray[1], 10) > 31) {
+    if (parseInt(dateArray[2], 10) < 1 || parseInt(dateArray[2], 10) > 31) {
       return false;
     }
 
@@ -287,10 +287,10 @@ class RefileErrorsForm extends Component {
     return (
       <form onSubmit={this.clickSubmit}>
         <FormField
-          className="nypl-text-field"
+          className="nypl-date-field"
           id="startDate"
-          type="text"
-          label="StartDate"
+          type="date"
+          label="Start Date"
           fieldName="startDate"
           instructionText="The start date as the format as MM/DD/YYYY"
           value={this.state.formFields.startDate}
@@ -301,10 +301,10 @@ class RefileErrorsForm extends Component {
         />
         <span>to</span>
         <FormField
-          className="nypl-text-field"
+          className="nypl-date-field"
           id="endDate"
-          type="text"
-          label="EndDate"
+          type="date"
+          label="End Date"
           fieldName="endDate"
           instructionText="The end date as the format as MM/DD/YYYY"
           value={this.state.formFields.endDate}
