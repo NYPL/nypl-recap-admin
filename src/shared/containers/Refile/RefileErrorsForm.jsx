@@ -30,7 +30,7 @@ class RefileErrorsForm extends Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.clickSubmit = this.clickSubmit.bind(this);
-    this.hitPageButton = this.hitPageButton.bind(this);
+    this.hitPageLink = this.hitPageLink.bind(this);
   }
 
   componentDidMount() {
@@ -164,13 +164,11 @@ class RefileErrorsForm extends Component {
   * handleFormSubmit()
   * @param {string} type - indicates if it is previous button or next button has been clicked
   */
-  hitPageButton(type) {
+  hitPageLink(type) {
     event.preventDefault();
 
     const resultLimit = this.state.formFields.resultLimit;
     const pageIncrement = 1;
-    const offsetInt = parseInt(this.state.formFields.offset, 10);
-
     // Set new state values based on the results from the new request
     const setStateForPagination = () => {
       const pageDifference = (type === 'pre') ? -1 : 1;
@@ -188,16 +186,8 @@ class RefileErrorsForm extends Component {
     };
 
     if (type === 'pre') {
-      if (offsetInt <= 0) {
-        return;
-      }
-
       setStateForPagination();
     } else {
-      if (parseInt(this.state.refileErrorResultsTotal, 10) <= offsetInt + resultLimit) {
-        return;
-      }
-
       setStateForPagination();
     }
   }
@@ -286,43 +276,43 @@ class RefileErrorsForm extends Component {
   renderRefileErrorsFrom() {
     return (
       <form onSubmit={this.clickSubmit}>
-          <div className="nypl-name-field nypl-filter-date-field">
-            <FormField
-              id="startDate"
-              className="recap-admin-date-field"
-              type="date"
-              label="Start Date"
-              fieldName="startDate"
-              instructionText="The start date as the format as MM/DD/YYYY"
-              value={this.state.formFields.startDate}
-              handleOnChange={this.handleInputChange}
-              errorField={this.state.fieldErrors.startDate}
-              fieldRef={(input) => { this.startDate = input; }}
-              isRequired
-            />
-            <span className="date-divider">to</span>
-            <FormField
-              id="endDate"
-              className="recap-admin-date-field"
-              type="date"
-              label="End Date"
-              fieldName="endDate"
-              instructionText="The end date as the format as MM/DD/YYYY"
-              value={this.state.formFields.endDate}
-              handleOnChange={this.handleInputChange}
-              errorField={this.state.fieldErrors.endDate}
-              fieldRef={(input) => { this.endDate = input; }}
-              isRequired
-            />
-          </div>
-          <div className="nypl-submit-button-wrapper">
-            <input
-              className="nypl-primary-button"
-              type="submit"
-              value="Submit"
-              disabled={this.props.isFormProcessing}
-            />
-          </div>
+        <div className="nypl-name-field nypl-filter-date-field">
+          <FormField
+            id="startDate"
+            className="recap-admin-date-field"
+            type="date"
+            label="Start Date"
+            fieldName="startDate"
+            instructionText="The start date as the format as MM/DD/YYYY"
+            value={this.state.formFields.startDate}
+            handleOnChange={this.handleInputChange}
+            errorField={this.state.fieldErrors.startDate}
+            fieldRef={(input) => { this.startDate = input; }}
+            isRequired
+          />
+          <span className="date-divider">to</span>
+          <FormField
+            id="endDate"
+            className="recap-admin-date-field"
+            type="date"
+            label="End Date"
+            fieldName="endDate"
+            instructionText="The end date as the format as MM/DD/YYYY"
+            value={this.state.formFields.endDate}
+            handleOnChange={this.handleInputChange}
+            errorField={this.state.fieldErrors.endDate}
+            fieldRef={(input) => { this.endDate = input; }}
+            isRequired
+          />
+        </div>
+        <div className="nypl-submit-button-wrapper">
+          <input
+            className="nypl-primary-button"
+            type="submit"
+            value="Submit"
+            disabled={this.props.isFormProcessing}
+          />
+        </div>
       </form>
     );
   }
@@ -368,6 +358,51 @@ class RefileErrorsForm extends Component {
     return resultContent;
   }
 
+  /**
+  * @desc Renders the links to navigate through the pages of the results
+  * Based on the current page, if it is the first page, then there will not be the previous link.
+  * If it is the last page, then there will not be the next link.
+  */
+  renderPaginationLink(type) {
+    const offsetInt = parseInt(this.state.formFields.offset, 10);
+    const resultLimit = this.state.formFields.resultLimit;
+
+    if (this.state.refileErrorResults && this.state.refileErrorResults.length) {
+      if (type === 'pre') {
+        if (offsetInt <= 0) {
+          return;
+        }
+        return (
+          <a
+            className="previous-link pointer"
+            onClick={() => this.hitPageLink('pre')}
+            onKeyDown={() => this.hitPageLink('pre')}
+            role="link"
+            tabIndex="0"
+          >
+            Previous
+          </a>
+        );
+      }
+
+      if (parseInt(this.state.refileErrorResultsTotal, 10) <= offsetInt + resultLimit) {
+        return;
+      }
+      return (
+        <a
+          className="next-link pointer"
+          onClick={() => this.hitPageLink('next')}
+          onKeyDown={() => this.hitPageLink('next')}
+          role="link"
+          tabIndex="0"
+        >
+          Next
+        </a>
+      );
+    }
+    return;
+  }
+
   render() {
     const totalResultCount = this.state.refileErrorResultsTotal;
     const itemStart = parseInt(this.state.formFields.offset, 10) + 1;
@@ -379,11 +414,7 @@ class RefileErrorsForm extends Component {
       <p>Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p> :
       null;
     const pageText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <p>Page {currentPage} of {totalPageNumber}</p> : null;
-    const preButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <button onClick={() => this.hitPageButton('pre')}>Previous</button> : null;
-    const nextButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <button onClick={() => this.hitPageButton('next')}>Next</button> : null;
+      <span className="page-count">Page {currentPage} of {totalPageNumber}</span> : null;
 
     return (
       <div className={this.props.className} id={this.props.id}>
@@ -394,9 +425,11 @@ class RefileErrorsForm extends Component {
           {displayingText}
           {this.renderRefileErrorResults()}
         </div>
-        {preButton}
-        {pageText}
-        {nextButton}
+        <nav className="nypl-results-pagination">
+          {this.renderPaginationLink('pre')}
+          {pageText}
+          {this.renderPaginationLink('next')}
+        </nav>
       </div>
     );
   }
