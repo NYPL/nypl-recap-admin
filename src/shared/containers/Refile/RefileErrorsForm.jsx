@@ -286,41 +286,43 @@ class RefileErrorsForm extends Component {
   renderRefileErrorsFrom() {
     return (
       <form onSubmit={this.clickSubmit}>
-        <FormField
-          className="nypl-date-field"
-          id="startDate"
-          type="date"
-          label="Start Date"
-          fieldName="startDate"
-          instructionText="The start date as the format as MM/DD/YYYY"
-          value={this.state.formFields.startDate}
-          handleOnChange={this.handleInputChange}
-          errorField={this.state.fieldErrors.startDate}
-          fieldRef={(input) => { this.startDate = input; }}
-          isRequired
-        />
-        <span>to</span>
-        <FormField
-          className="nypl-date-field"
-          id="endDate"
-          type="date"
-          label="End Date"
-          fieldName="endDate"
-          instructionText="The end date as the format as MM/DD/YYYY"
-          value={this.state.formFields.endDate}
-          handleOnChange={this.handleInputChange}
-          errorField={this.state.fieldErrors.endDate}
-          fieldRef={(input) => { this.endDate = input; }}
-          isRequired
-        />
-        <div className="nypl-submit-button-wrapper">
-          <input
-            className="nypl-primary-button"
-            type="submit"
-            value="Submit"
-            disabled={this.props.isFormProcessing}
-          />
-        </div>
+          <div className="nypl-name-field nypl-filter-date-field">
+            <FormField
+              id="startDate"
+              className="recap-admin-date-field"
+              type="date"
+              label="Start Date"
+              fieldName="startDate"
+              instructionText="The start date as the format as MM/DD/YYYY"
+              value={this.state.formFields.startDate}
+              handleOnChange={this.handleInputChange}
+              errorField={this.state.fieldErrors.startDate}
+              fieldRef={(input) => { this.startDate = input; }}
+              isRequired
+            />
+            <span className="date-divider">to</span>
+            <FormField
+              id="endDate"
+              className="recap-admin-date-field"
+              type="date"
+              label="End Date"
+              fieldName="endDate"
+              instructionText="The end date as the format as MM/DD/YYYY"
+              value={this.state.formFields.endDate}
+              handleOnChange={this.handleInputChange}
+              errorField={this.state.fieldErrors.endDate}
+              fieldRef={(input) => { this.endDate = input; }}
+              isRequired
+            />
+          </div>
+          <div className="nypl-submit-button-wrapper">
+            <input
+              className="nypl-primary-button"
+              type="submit"
+              value="Submit"
+              disabled={this.props.isFormProcessing}
+            />
+          </div>
       </form>
     );
   }

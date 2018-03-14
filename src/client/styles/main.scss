@@ -38,3 +38,21 @@
     }
   }
 }
+
+.date-divider {
+  display: inline-block;
+  margin: 20px;
+  float: left;
+  padding-top: 16px;
+  @media (max-width: 965px) {
+    float: none;
+    padding-top: 0;
+  }
+}
+
+.recap-admin-date-field.recap-admin-date-field {
+  width: calc(50% - 30px);
+  @media (max-width: 965px) {
+    width: auto;
+  }
+}
