@@ -332,14 +332,14 @@ class RefileErrorsForm extends Component {
       map(this.state.refileErrorResults, (item, i) =>
         <tr key={i}>
           <td>{item.id}</td>
-          <td>{item.itemBarcode}</td>
+          <th className="barcode-th">{item.itemBarcode}</th>
           <td>{(item.updatedDate) ? item.createdDate.split('T')[0] : ''}</td>
           <td>{(item.updatedDate) ? item.updatedDate.split('T')[0] : ''}</td>
         </tr>
       ) : null;
 
     resultContent = (itemRows) ? (
-      <table>
+      <table className="result-table">
         <caption className="hidden">Refile Error Details</caption>
         <thead>
           <tr>
@@ -349,7 +349,7 @@ class RefileErrorsForm extends Component {
             <th scope="col">Updated Date</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="result-table-body">
           {itemRows}
         </tbody>
       </table>
