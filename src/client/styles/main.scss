@@ -5,6 +5,7 @@
 // App Components
 @import 'components/loader';
 @import 'components/sidebar-navigation';
+@import 'containers/refile';
 
 .app-header {
   background-color: $nypl-blue-tint;
@@ -37,55 +38,4 @@
       width: 5rem;
     }
   }
-}
-
-.date-divider {
-  display: inline-block;
-  margin: 20px;
-  float: left;
-  padding-top: 16px;
-  @media (max-width: 965px) {
-    float: none;
-    padding-top: 0;
-  }
-}
-
-.recap-admin-date-field.recap-admin-date-field {
-  width: calc(50% - 30px);
-  @media (max-width: 965px) {
-    width: auto;
-  }
-}
-
-.pointer {
-  cursor: pointer;
-}
-
-.result-table {
-  border-collapse: collapse;
-  width: 100%;
-
-  thead {
-    background-color: #D7D4D0;
-  }
-
-  td, th {
-    border-color: #D7D4D0;
-    border-style: solid;
-    border-width: 1px;
-  }
-
-  td {
-    margin: 0 2px;
-    text-align: center;
-  }
-
-  .barcode-th {
-    text-align: left;
-    padding-left: 20px;
-  }
-}
-
-.display-result-text {
-  margin-top: 20px;
 }
