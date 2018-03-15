@@ -321,11 +321,21 @@ class RefileErrorsForm extends Component {
   * @desc Renders the results of refile errors
   */
   renderRefileErrorResults() {
-    let resultContent = '';
+    let resultContent = null;
 
+    // Renders the error instruction based on the response from the Node server
     if (this.state.formResult.response) {
-      resultContent = <p className="display-result-text">The input dates have invalid format or value, please check again.</p>;
-      return resultContent;
+      if (this.state.formResult.response.response.status === 400) {
+        resultContent = 'The input dates have invalid format or value, please check again.';
+      } else {
+        resultContent = 'Internal server error. Please check your credentials or try again later.';
+      }
+
+      return (
+        <p className="display-result-text">
+          {resultContent}
+        </p>
+      );
     }
 
     const itemRows = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
