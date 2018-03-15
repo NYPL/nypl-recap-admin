@@ -9,6 +9,11 @@ const routes = [
     component: ApplicationContainer,
     routes: [
       {
+        path: '/',
+        exact: true,
+        component: UpdateMetadata
+      },
+      {
         path: '/transfer-metadata',
         exact: true,
         component: TransferMetadata
