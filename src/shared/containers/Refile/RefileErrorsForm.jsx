@@ -324,7 +324,7 @@ class RefileErrorsForm extends Component {
     let resultContent = '';
 
     if (this.state.formResult.response) {
-      resultContent = <p>The input dates have invalid format or value, please check again.</p>;
+      resultContent = <p className="display-result-text">The input dates have invalid format or value, please check again.</p>;
       return resultContent;
     }
 
@@ -353,7 +353,7 @@ class RefileErrorsForm extends Component {
           {itemRows}
         </tbody>
       </table>
-    ) : <p>There is no refile errors in the range of the selected dates.</p>;
+    ) : <p className="display-result-text">There is no refile errors in the range of the selected dates.</p>;
 
     return resultContent;
   }
@@ -411,7 +411,7 @@ class RefileErrorsForm extends Component {
     const totalPageNumber = Math.ceil((parseInt(totalResultCount, 10) / 25));
     const displayFields = this.state.displayFields;
     const displayingText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <p>Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p> :
+      <p className="display-result-text">Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p> :
       null;
     const pageText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       <span className="page-count">Page {currentPage} of {totalPageNumber}</span> : null;
