@@ -8,6 +8,10 @@ Install all NPM dependencies listed under `package.json`
 $ npm install
 ```
 
+### Getting Credentials and Environment Viriables
+Please get all the necessary credentials and environment variables from NYPL before you run this application. You can find all the variables you need in `.env.example`. Once you get them, create a `.env` file in the root folder, copy the content from `.env.example` but fill in the real values respectively. See the next section to get more information about OAuth credentials.
+
+
 ## OAuth Configuration
 ### Authorization
 The app is configured to use `isso.nypl.org` for OAuth authentication. You will need to pass in the correct `CLIENT_SECRET` as an environment variable for the authentication to work correctly. You can look up the secret in the parameter store; the clientID is `platform_admin`. Set the environment variable `CLIENT_SECRET` to the client secret when running the app, as set out below.
@@ -27,18 +31,18 @@ You only need to do that once (well, maybe again if you upgrade your OS — that
 We use Webpack to fire off a hot-reloading development server. This allows for continuous code changes without the need to refresh your browser.
 
 ```sh
-$ CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 defaulting to the Development API
+$ npm start // Starts localhost:3001 defaulting to the Development API
 ```
 
 You can also set the `APP_ENV` variable which dictates what API environment to use as the main source.
 ```sh
-$ APP_ENV=development|qa|production CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 with set APP_ENV
+$ APP_ENV=development|qa|production npm start // Starts localhost:3001 with set APP_ENV
 ```
 
 If you do not have a default AWS profile on local instance, you MUST specify the AWS profile you'd like use with the app. To do so, you may include `AWS_PROFILE` on the command line
 
 ```sh
-$ AWS_PROFILE=[AWS_PROFILE_NAME] APP_ENV=development|qa|production CLIENT_SECRET=[CLIENT_SECRET] npm start // Starts localhost:3001 with set APP_ENV
+$ AWS_PROFILE=[AWS_PROFILE_NAME] APP_ENV=development|qa|production npm start // Starts localhost:3001 with set APP_ENV
 ```
 
 ### Production Mode
@@ -51,7 +55,7 @@ $ npm run dist
 
 * **Step 2**: Starts the Node/Express server in `localhost:3001` with the `APP_ENV` set to `production`, targeting the proper `production` API's.
 ```sh
-$ APP_ENV=production CLIENT_SECRET=[CLIENT_SECRET] CALLBACK_URL=[SETUP_ON_AWS OR `local.nypl.org/callback`] npm start:production
+$ APP_ENV=production npm start:production
 ```
 
 ## SQS
