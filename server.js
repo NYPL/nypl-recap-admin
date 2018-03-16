@@ -137,6 +137,8 @@ app.use((req, res, next) => {
 app.get('*', renderAdminView);
 // POST Route to obtain refile errors
 app.post('/get-refile-errors', getRefileErrors)
+// POST Route to set an item's status with Refile endpoint
+app.post('/set-item-status', postBarcodeToRefile);
 // POST Routes handle SQS data
 app.post('/update-metadata', handleSqsDataProcessing(sqsClient, 'update'));
 app.post('/transfer-metadata', handleSqsDataProcessing(sqsClient, 'transfer'));

@@ -145,6 +145,17 @@ function constructDateQuery(dateInput, isEndDate = false) {
   return undefined;
 }
 
+function constructNyplApiClient() {
+  const client = new NyplApiClient({
+    base_url: config.nyplMicroService.platformBaseUrl,
+    oauth_key: config.nyplMicroService.refileRequestId,
+    oauth_secret: config.nyplMicroService.refileRequestSecret,
+    oauth_url: config.nyplMicroService.tokenUrlForNyplApiClient,
+  });
+
+  return client;
+}
+
 /**
 * getRefileErrors(req, res, next)
 * @desc Gets the refile error records from the API endpoint and returns it to the front end
@@ -157,7 +168,7 @@ export function getRefileErrors(req, res, next) {
   const offsetQuery = req.body.offset;
   const limitQuery = req.body.resultLimit;
 
-  // For the case the date inputs are not valid format or value
+  // For the case the date inputs do not have the valid formats or values
   if (!startDateQuery || !endDateQuery) {
     res.status(400)
     .header('Content-Type', 'application/json')
@@ -166,12 +177,7 @@ export function getRefileErrors(req, res, next) {
     });
   }
 
-  const client = new NyplApiClient({
-    base_url: config.nyplMicroService.platformBaseUrl,
-    oauth_key: config.nyplMicroService.refileRequestId,
-    oauth_secret: config.nyplMicroService.refileRequestSecret,
-    oauth_url: config.nyplMicroService.tokenUrlForNyplApiClient,
-  });
+  const client = constructNyplApiClient();
 
   client.get(
     `recap/refile-requests?createdDate=[${startDateQuery},${endDateQuery}]`+
@@ -188,7 +194,43 @@ export function getRefileErrors(req, res, next) {
     });
   })
   .catch(error => {
-   res.status(500)
+    res.status(500)
+    .header('Content-Type', 'application/json')
+    .json({
+      data: error
+    });
+  });
+}
+
+export function postBarcodeToRefile(req, res, next) {
+  const postData = req.body;
+  const barcodeMatch = postData.itemBarcode.match(/^(\d{14})$/);
+
+  // For the case the input does not have the valid format or value
+  if (!barcodeMatch) {
+    res.status(400)
+    .header('Content-Type', 'application/json')
+    .json({
+      message: 'Not a valid barcode.'
+    });
+  }
+
+  const client = constructNyplApiClient();
+
+  client.post(
+    '/v0.1/recap/refile-requests',
+    { data: postData },
+    { json: true }
+  )
+  .then(response => {
+    res.status(200)
+    .header('Content-Type', 'application/json')
+    .json({
+      data: response
+    });
+  })
+  .catch(error => {
+    res.status(500)
     .header('Content-Type', 'application/json')
     .json({
       data: error
