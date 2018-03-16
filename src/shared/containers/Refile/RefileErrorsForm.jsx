@@ -351,7 +351,7 @@ class RefileErrorsForm extends Component {
               <th className="barcode-th">{item.itemBarcode}</th>
               <td>{(item.updatedDate) ? item.createdDate.split('T')[0] : ''}</td>
               <td>{(item.updatedDate) ? item.updatedDate.split('T')[0] : ''}</td>
-              <td lassName="af-message-td">{afMessages}</td>
+              <td className="af-message-td">{afMessages}</td>
               <td></td>
             </tr>
           );
