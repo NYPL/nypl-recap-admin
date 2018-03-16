@@ -2,9 +2,11 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import isEmpty from 'lodash/isEmpty';
-import { forIn, map, assign } from 'lodash';
-import FormField from '../../components/FormField/FormField';
+import { forIn, assign } from 'lodash';
 import moment from 'moment';
+import FormField from '../../components/FormField/FormField';
+import { modelRefileErrorResponse } from './../../utils/modelRefileErrorDataUtils';
+
 
 class RefileErrorsForm extends Component {
   constructor(props) {
@@ -338,37 +340,9 @@ class RefileErrorsForm extends Component {
       );
     }
 
-    const itemRows = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      map(this.state.refileErrorResults, (item, i) => {
-        const afMessageString = (item.afMessage) ? item.afMessage.replace(/^\[|\]$/g, '') : '';
-        const afMessageArray = (afMessageString) ? afMessageString.split(',') : '';
-        const afMessages = (afMessageArray.length) ?
-          map(afMessageArray, (message, i) => <span className="af-message" key={i}>{message.replace(/^\"|\"$/g, '')}</span>): null;
+    const itemRows = modelRefileErrorResponse(this.state.refileErrorResults);
 
-        let isNyplItem = 'yes';
-
-        const sip2Response = (item.sip2Response) ? JSON.parse(item.sip2Response) : null;
-        const CR = (sip2Response && sip2Response.variable.CR && sip2Response.variable.CR.length) ?
-          sip2Response.variable.CR[0].trim() :undefined;
-
-        if (CR == 'os') {
-          isNyplItem = 'no'
-        }
-
-        return (
-            <tr key={i}>
-              <td>{item.id}</td>
-              <th className="barcode-th">{item.itemBarcode}</th>
-              <td>{(item.updatedDate) ? item.createdDate.split('T')[0] : ''}</td>
-              <td>{(item.updatedDate) ? item.updatedDate.split('T')[0] : ''}</td>
-              <td className="af-message-td">{afMessages}</td>
-              <td>{isNyplItem}</td>
-            </tr>
-          );
-        }
-      ) : null;
-
-    resultContent = (itemRows) ? (
+    resultContent = (itemRows.length) ? (
       <table className="result-table">
         <caption className="hidden">Refile Error Details</caption>
         <thead>
@@ -385,7 +359,10 @@ class RefileErrorsForm extends Component {
           {itemRows}
         </tbody>
       </table>
-    ) : <p className="display-result-text">There is no refile errors in the range of the selected dates.</p>;
+    ) :
+      <p className="display-result-text">
+        There is no refile errors in the range of the selected dates.
+      </p>;
 
     return resultContent;
   }
@@ -443,8 +420,9 @@ class RefileErrorsForm extends Component {
     const totalPageNumber = Math.ceil((parseInt(totalResultCount, 10) / 25));
     const displayFields = this.state.displayFields;
     const displayingText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <p className="display-result-text">Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p> :
-      null;
+      <p className="display-result-text">
+        Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}
+      </p> : null;
     const pageText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       <span className="page-count">Page {currentPage} of {totalPageNumber}</span> : null;
 
