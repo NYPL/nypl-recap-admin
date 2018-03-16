@@ -339,13 +339,23 @@ class RefileErrorsForm extends Component {
     }
 
     const itemRows = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      map(this.state.refileErrorResults, (item, i) =>
-        <tr key={i}>
-          <td>{item.id}</td>
-          <th className="barcode-th">{item.itemBarcode}</th>
-          <td>{(item.updatedDate) ? item.createdDate.split('T')[0] : ''}</td>
-          <td>{(item.updatedDate) ? item.updatedDate.split('T')[0] : ''}</td>
-        </tr>
+      map(this.state.refileErrorResults, (item, i) => {
+        const afMessageString = (item.afMessage) ? item.afMessage.replace(/^\[|\]$/g, '') : '';
+        const afMessageArray = (afMessageString) ? afMessageString.split(',') : '';
+        const afMessages = (afMessageArray.length) ?
+          map(afMessageArray, (message, i) => <span className="af-message" key={i}>{message.replace(/^\"|\"$/g, '')}</span>): null;
+
+        return (
+            <tr key={i}>
+              <td>{item.id}</td>
+              <th className="barcode-th">{item.itemBarcode}</th>
+              <td>{(item.updatedDate) ? item.createdDate.split('T')[0] : ''}</td>
+              <td>{(item.updatedDate) ? item.updatedDate.split('T')[0] : ''}</td>
+              <td lassName="af-message-td">{afMessages}</td>
+              <td></td>
+            </tr>
+          );
+        }
       ) : null;
 
     resultContent = (itemRows) ? (
@@ -357,6 +367,8 @@ class RefileErrorsForm extends Component {
             <th scope="col">Barcodes</th>
             <th scope="col">Created Date</th>
             <th scope="col">Updated Date</th>
+            <th scope="col">AF</th>
+            <th scope="col">NYPL Item?</th>
           </tr>
         </thead>
         <tbody className="result-table-body">
