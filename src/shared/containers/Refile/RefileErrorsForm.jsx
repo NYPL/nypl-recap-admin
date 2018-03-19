@@ -162,6 +162,7 @@ class RefileErrorsForm extends Component {
   /**
   * @desc When the pagination button is clicked, it handles the event and executes
   * handleFormSubmit()
+  * @param {event} type - the event trigger the HTML element
   * @param {string} type - indicates if it is previous button or next button has been clicked
   */
   hitPageLink(event, type) {
