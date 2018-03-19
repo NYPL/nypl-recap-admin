@@ -19,7 +19,6 @@ class ClearItemStatusForm extends Component {
     };
     this.baseState = this.state;
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleInputBlur = this.handleInputBlur.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
   }
 
@@ -35,41 +34,12 @@ class ClearItemStatusForm extends Component {
   }
 
   /**
-  * @desc Handles updating the state based on the validation function executed in the setState
-  * anonymous function.
-  * @param {object} event - contains the current event context of the input field
-  */
-  handleInputBlur(event) {
-    const { target, type } = event;
-    const name = target.name;
-
-    // React pattern to handle asynchronous state changes
-    this.setState(prevState => {
-      this.validateField(name, prevState);
-      return prevState;
-    });
-  }
-
-  /**
   * @desc Handles executing the focus() function for the given fieldName React ref instance
   * @param {string} fieldName - the ref string name
   */
   focusOnField(fieldName) {
     if (this[fieldName]) {
       this[fieldName].focus();
-    }
-  }
-
-  /**
-  * @desc Handles deleting the passed state object property only if defined
-  * @param {string} field - the string name of the fieldErrors property
-  * @param {object} state - the current state object
-  */
-  removeFieldError(field, state) {
-    const currentState = state;
-    // Only remove and update state existing field errors
-    if (currentState.fieldErrors[field]) {
-      delete currentState.fieldErrors[field];
     }
   }
 
@@ -85,7 +55,28 @@ class ClearItemStatusForm extends Component {
     const currentState = state;
 
     if (typeof currentState.fieldErrors === 'object' && isEmpty(currentState.fieldErrors[field])) {
-      currentState.fieldErrors[field] = errorString;
+      const currentFieldErrorsState = {...currentState.fieldErrors, [field]: errorString };
+
+      this.setState({
+        fieldErrors: currentFieldErrorsState,
+      });
+    }
+  }
+
+  /**
+  * @desc Handles deleting the passed state object property only if defined
+  * @param {string} field - the string name of the fieldErrors property
+  * @param {object} state - the current state object
+  */
+  removeFieldError(field, state) {
+    const currentState = state;
+    // Only remove and update state existing field errors
+    if (currentState.fieldErrors[field]) {
+      delete currentState.fieldErrors[field];
+
+      this.setState({
+        fieldErrors: currentState.fieldErrors,
+      });
     }
   }
 
@@ -93,23 +84,17 @@ class ClearItemStatusForm extends Component {
   * @desc Handles validating the given fieldName based on the validation rules for the type of input
   * @param {string} fieldName - the string name of the input field
   * @param {object} state - the current state object
-  * @param {boolean} focusOnError - flag utilized to execute focusOnField() if true (default: false)
   */
-  validateField(fieldName, state, focusOnError = false) {
-    switch (fieldName) {
-      case 'barcode':
-        if (!isBarcodeValid(state.formFields[fieldName])) {
-          this.setFieldError(fieldName, state, 'The barcode field must be 14 numerical characters');
-          if (focusOnError === true) {
-            this.focusOnField(fieldName);
-          }
-        } else {
-          this.removeFieldError(fieldName, state);
-        }
-        break;
-      default:
-        break;
+  validateField(fieldName, state) {
+    if (state.formFields[fieldName].length > 20) {
+      this.setFieldError(fieldName, state, 'The barcode must be no longer than 20 digits');
+
+      return fieldName;
+    } else {
+      this.removeFieldError(fieldName, state);
     }
+
+    return;
   }
 
   /**
@@ -144,12 +129,20 @@ class ClearItemStatusForm extends Component {
   handleFormSubmit(event) {
     event.preventDefault();
 
+    // The array that stores the results after validating the date inputs
+    const fieldErrorsArray = [];
+
     // Iterate through patron fields and ensure all fields are valid
     forIn(this.state.formFields, (value, key) => {
       this.validateField(key, this.state, true);
+      fieldErrorsArray.push(this.validateField(key, this.state));
     });
 
-    if (isEmpty(this.state.fieldErrors)) {
+    if (fieldErrorsArray.length) {
+      this.focusOnField(fieldErrorsArray[0]);
+    }
+
+    if (!fieldErrorsArray.length) {
       const {
         formFields: {
           barcode,
@@ -160,7 +153,7 @@ class ClearItemStatusForm extends Component {
       this.props.setApplicationLoadingState(true);
 
       return axios.post(
-        '/clear-item-status',
+        '/set-item-status',
         {
           barcode,
         }
@@ -192,7 +185,6 @@ class ClearItemStatusForm extends Component {
             instructionText="Make sure the item is available in SCSB first"
             value={this.state.formFields.barcode}
             handleOnChange={this.handleInputChange}
-            handleOnBlur={this.handleInputBlur}
             errorField={this.state.fieldErrors.barcode}
             fieldRef={(input) => { this.barcode = input; }}
             placeholder="Enter Barcode"
