@@ -13,7 +13,7 @@ import uuidv4 from 'uuid/v4';
 import { updateMetadata } from './src/server/routes/api';
 import aws from 'aws-sdk';
 // App Route Handling
-import { handleSqsDataProcessing, getRefileErrors } from './src/server/routes/api';
+import { handleSqsDataProcessing, getRefileErrors, postBarcodeToRefile } from './src/server/routes/api';
 import { renderAdminView } from './src/server/routes/render';
 import { isUserAuthorized, repeatRetrieveAuthorizedUsers, verifySessionFromToken } from './src/server/routes/auth';
 // App Config File
