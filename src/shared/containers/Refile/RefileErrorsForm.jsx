@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import isEmpty from 'lodash/isEmpty';
-import { map } from 'lodash';
+import { forIn, map } from 'lodash';
 import FormField from '../../components/FormField/FormField';
 import moment from 'moment';
 
@@ -28,7 +28,6 @@ class RefileErrorsForm extends Component {
     };
     this.baseState = this.state;
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleInputBlur = this.handleInputBlur.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.clickSubmit = this.clickSubmit.bind(this);
     this.hitPageButton = this.hitPageButton.bind(this);
@@ -50,7 +49,11 @@ class RefileErrorsForm extends Component {
     const currentState = state;
 
     if (typeof currentState.fieldErrors === 'object' && isEmpty(currentState.fieldErrors[field])) {
-      currentState.fieldErrors[field] = errorString;
+      const currentFieldErrorsState = {...currentState.fieldErrors, [field]: errorString };
+
+      this.setState({
+        fieldErrors: currentFieldErrorsState,
+      });
     }
   }
 
@@ -64,6 +67,10 @@ class RefileErrorsForm extends Component {
     // Only remove and update state existing field errors
     if (currentState.fieldErrors[field]) {
       delete currentState.fieldErrors[field];
+
+      this.setState({
+        fieldErrors: currentState.fieldErrors,
+      });
     }
   }
 
@@ -75,22 +82,6 @@ class RefileErrorsForm extends Component {
     if (this[fieldName]) {
       this[fieldName].focus();
     }
-  }
-
-  /**
-  * @desc Handles updating the state based on the validation function executed in the setState
-  * anonymous function.
-  * @param {object} event - contains the current event context of the input field
-  */
-  handleInputBlur(event) {
-    const { target, type } = event;
-    const name = target.name;
-
-    // React pattern to handle asynchronous state changes
-    this.setState(prevState => {
-      this.validateField(name, prevState);
-      return prevState;
-    });
   }
 
   /**
@@ -106,30 +97,59 @@ class RefileErrorsForm extends Component {
   }
 
   /**
+  * @desc Validates the input
+  * @param {string} date - the string of the input value
+  */
+  isDateValid(dateInput) {
+    if (!dateInput) {
+      return false;
+    }
+
+    const dateArray = dateInput.split('/');
+    const month = parseInt(dateArray[0], 10);
+    const date = parseInt(dateArray[1], 10);
+    // Checks if it has a valid date format. The Regex check if the inputs are digits
+    // and if they have right number of digits
+    const dateMatches = dateInput.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
+
+    if (!dateMatches) {
+      return false;
+    }
+
+    // Checks if the month is valid
+    if (month < 1 || month > 12) {
+      return false;
+    }
+
+    // Checks if the date is valid
+    if (date < 1 || date > 31) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
   * @desc Handles validating the given fieldName based on the validation rules for the type of input
   * @param {string} fieldName - the string name of the input field
   * @param {object} state - the current state object
-  * @param {boolean} focusOnError - flag utilized to execute focusOnField() if true (default: false)
   */
-  validateField(fieldName, state, focusOnError = false) {
-    switch (fieldName) {
-      case 'startDate':
-        // TODO: implement validations, make sure 1) there's value; 2) the value is in the valid format
-        break;
-      case 'endDate':
-        // TODO: implement validations, make sure 1) there's value; 2) the value is in the valid format
-        // if (!isBarcodeValid(state.formFields[fieldName])) {
-        //   this.setFieldError(fieldName, state, 'The barcode field must be 14 numerical characters');
-        //   if (focusOnError === true) {
-        //     this.focusOnField(fieldName);
-        //   }
-        // } else {
-        //   this.removeFieldError(fieldName, state);
-        // }
-        break;
-      default:
-        break;
+  validateField(fieldName, state) {
+    if (fieldName === 'startDate' || fieldName === 'endDate') {
+      if (!this.isDateValid(state.formFields[fieldName])) {
+        this.setFieldError(
+          fieldName, state,
+          'Please enter the date following the format MM/DD/YYYY'
+        );
+
+        return fieldName;
+      }
+
+      // If no errors anymore, removes the error from the state
+      this.removeFieldError(fieldName, state);
     }
+
+    return;
   }
 
   /**
@@ -144,9 +164,10 @@ class RefileErrorsForm extends Component {
   /**
   * @desc When the pagination button is clicked, it handles the event and executes
   * handleFormSubmit()
+  * @param {event} type - the event trigger the HTML element
   * @param {string} type - indicates if it is previous button or next button has been clicked
   */
-  hitPageButton(type) {
+  hitPageButton(event, type) {
     event.preventDefault();
 
     const resultLimit = this.state.formFields.resultLimit;
@@ -185,19 +206,28 @@ class RefileErrorsForm extends Component {
   }
 
   /**
-  * @desc Handles sending the form field payload from the state to the proper API endpoint. All
+  * @desc Handle sending the form field payload from the state to the proper API endpoint. All
   * fields are validated prior to executing the ajax call. Updates the form state booleans and
   * result based on successful or error responses
-  * @param {object} event - contains the current event context of the field
+  * @param {boolean} resetOffset - if the request is from a new range of dates, we show the results
+  * from the first page
   */
-  handleFormSubmit(resetDates) {
-    // TODO: execute validations here
-    // Iterate through patron fields and ensure all fields are valid
-    // forIn(this.state.formFields, (value, key) => {
-    //   this.validateField(key, this.state, true);
-    // });
+  handleFormSubmit(resetOffset) {
+    // The array that stores the results after validating the date inputs
+    const fieldErrorsArray = [];
 
-    if (isEmpty(this.state.fieldErrors)) {
+    // Iterate through date fields and ensure all fields are valid
+    forIn(this.state.formFields, (value, key) => {
+      if (this.validateField(key, this.state)) {
+        fieldErrorsArray.push(this.validateField(key, this.state));
+      }
+    });
+
+    if (fieldErrorsArray.length) {
+      this.focusOnField(fieldErrorsArray[0]);
+    }
+
+    if (!fieldErrorsArray.length) {
       const {
         formFields: {
           startDate,
@@ -206,7 +236,7 @@ class RefileErrorsForm extends Component {
         },
       } = this.state;
 
-      const offset = resetDates ? 0 : this.state.formFields.offset;
+      const offset = resetOffset ? 0 : this.state.formFields.offset;
 
       // Update the Parent Container Loading State
       this.props.setApplicationLoadingState(true);
@@ -234,7 +264,7 @@ class RefileErrorsForm extends Component {
             offset,
             resultLimit,
           },
-          pageOfRefileErrorResults: resetDates ? 1 : this.state.pageOfRefileErrorResults,
+          pageOfRefileErrorResults: resetOffset ? 1 : this.state.pageOfRefileErrorResults,
           displayFields: {
             startDate: this.state.formFields.startDate,
             endDate: this.state.formFields.endDate,
@@ -242,8 +272,13 @@ class RefileErrorsForm extends Component {
         });
       }).catch(error => {
         console.log('Form Error Response: ', error);
+
         this.props.setApplicationLoadingState(false);
-        this.setState({...this.state, formResult: { processed: false, response: error } });
+        this.setState({
+          ...this.state,
+          formResult: { processed: false, response: error },
+          refileErrorResults: [],
+        });
       });
     }
   }
@@ -260,7 +295,7 @@ class RefileErrorsForm extends Component {
           type="text"
           label="StartDate"
           fieldName="startDate"
-          instructionText="Please enter a date as the follow format MM/DD/YYYY"
+          instructionText="The start date as the format as MM/DD/YYYY"
           value={this.state.formFields.startDate}
           handleOnChange={this.handleInputChange}
           errorField={this.state.fieldErrors.startDate}
@@ -274,7 +309,7 @@ class RefileErrorsForm extends Component {
           type="text"
           label="EndDate"
           fieldName="endDate"
-          instructionText="Please enter a date as the follow format MM/DD/YYYY"
+          instructionText="The end date as the format as MM/DD/YYYY"
           value={this.state.formFields.endDate}
           handleOnChange={this.handleInputChange}
           errorField={this.state.fieldErrors.endDate}
@@ -297,6 +332,13 @@ class RefileErrorsForm extends Component {
   * @desc Renders the results of refile errors
   */
   renderRefileErrorResults() {
+    let resultContent = '';
+
+    if (this.state.formResult.response) {
+      resultContent = <p>The input dates have invalid format or value, please check again.</p>;
+      return resultContent;
+    }
+
     const itemRows = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       map(this.state.refileErrorResults, (item, i) =>
         <tr key={i}>
@@ -307,7 +349,7 @@ class RefileErrorsForm extends Component {
         </tr>
       ) : null;
 
-    const resultContent = (itemRows) ? (
+    resultContent = (itemRows) ? (
       <table>
         <caption className="hidden">Refile Error Details</caption>
         <thead>
@@ -340,9 +382,9 @@ class RefileErrorsForm extends Component {
     const pageText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       <p>Page {currentPage} of {totalPageNumber}</p> : null;
     const preButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <button onClick={() => this.hitPageButton('pre')}>Previous</button> : null;
+      <button onClick={(e) => this.hitPageButton(e, 'pre')}>Previous</button> : null;
     const nextButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <button onClick={() => this.hitPageButton('next')}>Next</button> : null;
+      <button onClick={(e) => this.hitPageButton(e, 'next')}>Next</button> : null;
 
     return (
       <div className={this.props.className} id={this.props.id}>
