@@ -106,8 +106,8 @@ class RefileErrorsForm extends Component {
     }
 
     const dateArray = dateInput.split('-');
-    const month = parseInt(dateArray[0], 10);
-    const date = parseInt(dateArray[1], 10);
+    const month = parseInt(dateArray[1], 10);
+    const date = parseInt(dateArray[2], 10);
     // Checks if it has a valid date format. The Regex check if the inputs are digits
     // and if they have right number of digits
     const dateMatches = dateInput.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
