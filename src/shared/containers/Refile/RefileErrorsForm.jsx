@@ -164,7 +164,7 @@ class RefileErrorsForm extends Component {
   * handleFormSubmit()
   * @param {string} type - indicates if it is previous button or next button has been clicked
   */
-  hitPageButton(type) {
+  hitPageButton(event, type) {
     event.preventDefault();
 
     const resultLimit = this.state.formFields.resultLimit;
@@ -379,9 +379,9 @@ class RefileErrorsForm extends Component {
     const pageText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       <p>Page {currentPage} of {totalPageNumber}</p> : null;
     const preButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <button onClick={() => this.hitPageButton('pre')}>Previous</button> : null;
+      <button onClick={(e) => this.hitPageButton(e, 'pre')}>Previous</button> : null;
     const nextButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <button onClick={() => this.hitPageButton('next')}>Next</button> : null;
+      <button onClick={(e) => this.hitPageButton(e, 'next')}>Next</button> : null;
 
     return (
       <div className={this.props.className} id={this.props.id}>
