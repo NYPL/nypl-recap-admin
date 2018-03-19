@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import isEmpty from 'lodash/isEmpty';
-import { forIn, map, assign } from 'lodash';
+import { forIn, map } from 'lodash';
 import FormField from '../../components/FormField/FormField';
 import moment from 'moment';
 
@@ -49,7 +49,7 @@ class RefileErrorsForm extends Component {
     const currentState = state;
 
     if (typeof currentState.fieldErrors === 'object' && isEmpty(currentState.fieldErrors[field])) {
-      const currentFieldErrorsState = assign(currentState.fieldErrors, { [field]: errorString });
+      const currentFieldErrorsState = {...currentState.fieldErrors, [field]: errorString };
 
       this.setState({
         fieldErrors: currentFieldErrorsState,
