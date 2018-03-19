@@ -155,7 +155,7 @@ export function getRefileErrors(req, res, next) {
   const startDateQuery = constructDateQuery(req.body.startDate, false);
   const endDateQuery = constructDateQuery(req.body.endDate, true);
   const offsetQuery = req.body.offset;
-  const limitQuery = 25;
+  const limitQuery = req.body.resultLimit;
 
   // For the case the date inputs are not valid format or value
   if (!startDateQuery || !endDateQuery) {

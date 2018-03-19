@@ -19,3 +19,6 @@ package-lock.json
 
 # Environment files
 *.env
+
+# ES Lint Config
+.eslintrc
