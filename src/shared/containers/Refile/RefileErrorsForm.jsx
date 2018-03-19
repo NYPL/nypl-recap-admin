@@ -188,11 +188,7 @@ class RefileErrorsForm extends Component {
       }, () => { this.handleFormSubmit(); });
     };
 
-    if (type === 'pre') {
-      setStateForPagination();
-    } else {
-      setStateForPagination();
-    }
+    setStateForPagination();
   }
 
   /**
