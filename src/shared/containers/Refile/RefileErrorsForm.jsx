@@ -100,27 +100,29 @@ class RefileErrorsForm extends Component {
   * @desc Validates the input
   * @param {string} date - the string of the input value
   */
-  isDateValid(date) {
-    if (!date) {
+  isDateValid(dateInput) {
+    if (!dateInput) {
       return false;
     }
 
-    const dateArray = date.split('/');
+    const dateArray = dateInput.split('/');
+    const month = parseInt(dateArray[0], 10);
+    const date = parseInt(dateArray[1], 10);
     // Checks if it has a valid date format. The Regex check if the inputs are digits
     // and if they have right number of digits
-    const dateMatches = date.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
+    const dateMatches = dateInput.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
 
     if (!dateMatches) {
       return false;
     }
 
     // Checks if the month is valid
-    if (parseInt(dateArray[0], 10) < 1 || parseInt(dateArray[0], 10) > 12) {
+    if (month < 1 || month > 12) {
       return false;
     }
 
     // Checks if the date is valid
-    if (parseInt(dateArray[1], 10) < 1 || parseInt(dateArray[1], 10) > 31) {
+    if (date < 1 || date > 31) {
       return false;
     }
 
