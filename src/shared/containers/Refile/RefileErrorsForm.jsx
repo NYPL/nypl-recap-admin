@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import isEmpty from 'lodash/isEmpty';
-import { forIn, map, assign } from 'lodash';
+import { forIn, map } from 'lodash';
 import FormField from '../../components/FormField/FormField';
 import moment from 'moment';
 
@@ -49,7 +49,7 @@ class RefileErrorsForm extends Component {
     const currentState = state;
 
     if (typeof currentState.fieldErrors === 'object' && isEmpty(currentState.fieldErrors[field])) {
-      const currentFieldErrorsState = assign(currentState.fieldErrors, { [field]: errorString });
+      const currentFieldErrorsState = {...currentState.fieldErrors, [field]: errorString };
 
       this.setState({
         fieldErrors: currentFieldErrorsState,
@@ -100,27 +100,29 @@ class RefileErrorsForm extends Component {
   * @desc Validates the input
   * @param {string} date - the string of the input value
   */
-  isDateValid(date) {
-    if (!date) {
+  isDateValid(dateInput) {
+    if (!dateInput) {
       return false;
     }
 
-    const dateArray = date.split('-');
+    const dateArray = dateInput.split('-');
+    const month = parseInt(dateArray[0], 10);
+    const date = parseInt(dateArray[1], 10);
     // Checks if it has a valid date format. The Regex check if the inputs are digits
     // and if they have right number of digits
-    const dateMatches = date.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
+    const dateMatches = dateInput.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
 
     if (!dateMatches) {
       return false;
     }
 
     // Checks if the month is valid
-    if (parseInt(dateArray[1], 10) < 1 || parseInt(dateArray[1], 10) > 12) {
+    if (month < 1 || month > 12) {
       return false;
     }
 
     // Checks if the date is valid
-    if (parseInt(dateArray[2], 10) < 1 || parseInt(dateArray[2], 10) > 31) {
+    if (date < 1 || date > 31) {
       return false;
     }
 
