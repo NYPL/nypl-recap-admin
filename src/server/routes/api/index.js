@@ -120,6 +120,8 @@ function constructDateQuery(dateInput, isEndDate = false) {
 
   if (dateInput && typeof dateInput === 'string') {
     const dateArray = dateInput.split('-');
+    const month = parseInt(dateArray[1], 10);
+    const date = parseInt(dateArray[2], 10);
 
     // Checks if it has a valid date format. The Regex check if the inputs are digits
     // and if they have right number of digits
@@ -130,12 +132,12 @@ function constructDateQuery(dateInput, isEndDate = false) {
     }
 
     // Checks if the month is valid
-    if (parseInt(dateArray[1], 10) < 1 || parseInt(dateArray[1], 10) > 12) {
+    if (month < 1 || month > 12) {
       return undefined;
     }
 
     // Checks if the date is valid
-    if (parseInt(dateArray[2], 10) < 1 || parseInt(dateArray[2], 10) > 31) {
+    if (date < 1 || date > 31) {
       return undefined;
     }
 
