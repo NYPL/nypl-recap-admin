@@ -164,9 +164,10 @@ class RefileErrorsForm extends Component {
   /**
   * @desc When the pagination button is clicked, it handles the event and executes
   * handleFormSubmit()
+  * @param {event} type - the event trigger the HTML element
   * @param {string} type - indicates if it is previous button or next button has been clicked
   */
-  hitPageLink(type) {
+  hitPageLink(event, type) {
     event.preventDefault();
 
     const resultLimit = this.state.formFields.resultLimit;
@@ -384,8 +385,8 @@ class RefileErrorsForm extends Component {
         return (
           <a
             className="previous-link pointer"
-            onClick={() => this.hitPageLink('pre')}
-            onKeyDown={() => this.hitPageLink('pre')}
+            onClick={(e) => this.hitPageLink(e, 'pre')}
+            onKeyDown={(e) => this.hitPageLink(e, 'pre')}
             role="link"
             tabIndex="0"
           >
@@ -400,8 +401,8 @@ class RefileErrorsForm extends Component {
       return (
         <a
           className="next-link pointer"
-          onClick={() => this.hitPageLink('next')}
-          onKeyDown={() => this.hitPageLink('next')}
+          onClick={(e) => this.hitPageLink(e, 'next')}
+          onKeyDown={(e) => this.hitPageLink(e, 'next')}
           role="link"
           tabIndex="0"
         >
@@ -425,6 +426,10 @@ class RefileErrorsForm extends Component {
       </p> : null;
     const pageText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       <span className="page-count">Page {currentPage} of {totalPageNumber}</span> : null;
+    const preButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
+      <button onClick={(e) => this.hitPageButton(e, 'pre')}>Previous</button> : null;
+    const nextButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
+      <button onClick={(e) => this.hitPageButton(e, 'next')}>Next</button> : null;
 
     return (
       <div className={this.props.className} id={this.props.id}>
