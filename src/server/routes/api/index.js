@@ -119,13 +119,13 @@ function constructDateQuery(dateInput, isEndDate = false) {
   const lastSecond = (isEndDate) ? 'T23:59:59' : '';
 
   if (dateInput && typeof dateInput === 'string') {
-    const dateArray = dateInput.split('/');
-    const month = parseInt(dateArray[0], 10);
-    const date = parseInt(dateArray[1], 10);
+    const dateArray = dateInput.split('-');
+    const month = parseInt(dateArray[1], 10);
+    const date = parseInt(dateArray[2], 10);
 
     // Checks if it has a valid date format. The Regex check if the inputs are digits
     // and if they have right number of digits
-    const date_matches = dateInput.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
+    const date_matches = dateInput.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
 
     if (!date_matches) {
       return undefined;
@@ -141,7 +141,7 @@ function constructDateQuery(dateInput, isEndDate = false) {
       return undefined;
     }
 
-    return `${dateArray[2]}-${dateArray[0]}-${dateArray[1]}${lastSecond}`;
+    return `${dateArray[0]}-${dateArray[1]}-${dateArray[2]}${lastSecond}`;
   }
 
   return undefined;

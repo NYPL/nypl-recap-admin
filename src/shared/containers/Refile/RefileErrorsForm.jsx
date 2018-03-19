@@ -11,8 +11,8 @@ class RefileErrorsForm extends Component {
     super(props);
     this.state = {
       formFields: {
-        startDate: moment().subtract(1, 'day').format('MM/DD/YYYY'),
-        endDate: moment().format('MM/DD/YYYY'),
+        startDate: moment().subtract(1, 'day').format('YYYY-MM-DD'),
+        endDate: moment().format('YYYY-MM-DD'),
         offset: 0,
         resultLimit: 25,
       },
@@ -30,7 +30,7 @@ class RefileErrorsForm extends Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.clickSubmit = this.clickSubmit.bind(this);
-    this.hitPageButton = this.hitPageButton.bind(this);
+    this.hitPageLink = this.hitPageLink.bind(this);
   }
 
   componentDidMount() {
@@ -105,12 +105,12 @@ class RefileErrorsForm extends Component {
       return false;
     }
 
-    const dateArray = dateInput.split('/');
-    const month = parseInt(dateArray[0], 10);
-    const date = parseInt(dateArray[1], 10);
+    const dateArray = dateInput.split('-');
+    const month = parseInt(dateArray[1], 10);
+    const date = parseInt(dateArray[2], 10);
     // Checks if it has a valid date format. The Regex check if the inputs are digits
     // and if they have right number of digits
-    const dateMatches = dateInput.match(/^(\d{2})\/(\d{2})\/(?:\d{4})$/);
+    const dateMatches = dateInput.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
 
     if (!dateMatches) {
       return false;
@@ -167,13 +167,11 @@ class RefileErrorsForm extends Component {
   * @param {event} type - the event trigger the HTML element
   * @param {string} type - indicates if it is previous button or next button has been clicked
   */
-  hitPageButton(event, type) {
+  hitPageLink(event, type) {
     event.preventDefault();
 
     const resultLimit = this.state.formFields.resultLimit;
     const pageIncrement = 1;
-    const offsetInt = parseInt(this.state.formFields.offset, 10);
-
     // Set new state values based on the results from the new request
     const setStateForPagination = () => {
       const pageDifference = (type === 'pre') ? -1 : 1;
@@ -191,16 +189,8 @@ class RefileErrorsForm extends Component {
     };
 
     if (type === 'pre') {
-      if (offsetInt <= 0) {
-        return;
-      }
-
       setStateForPagination();
     } else {
-      if (parseInt(this.state.refileErrorResultsTotal, 10) <= offsetInt + resultLimit) {
-        return;
-      }
-
       setStateForPagination();
     }
   }
@@ -289,33 +279,35 @@ class RefileErrorsForm extends Component {
   renderRefileErrorsFrom() {
     return (
       <form onSubmit={this.clickSubmit}>
-        <FormField
-          className="nypl-text-field"
-          id="startDate"
-          type="text"
-          label="StartDate"
-          fieldName="startDate"
-          instructionText="The start date as the format as MM/DD/YYYY"
-          value={this.state.formFields.startDate}
-          handleOnChange={this.handleInputChange}
-          errorField={this.state.fieldErrors.startDate}
-          fieldRef={(input) => { this.startDate = input; }}
-          isRequired
-        />
-        <span>to</span>
-        <FormField
-          className="nypl-text-field"
-          id="endDate"
-          type="text"
-          label="EndDate"
-          fieldName="endDate"
-          instructionText="The end date as the format as MM/DD/YYYY"
-          value={this.state.formFields.endDate}
-          handleOnChange={this.handleInputChange}
-          errorField={this.state.fieldErrors.endDate}
-          fieldRef={(input) => { this.endDate = input; }}
-          isRequired
-        />
+        <div className="nypl-name-field nypl-filter-date-field">
+          <FormField
+            id="startDate"
+            className="recap-admin-date-field"
+            type="date"
+            label="Start Date"
+            fieldName="startDate"
+            instructionText="The start date as the format as MM/DD/YYYY"
+            value={this.state.formFields.startDate}
+            handleOnChange={this.handleInputChange}
+            errorField={this.state.fieldErrors.startDate}
+            fieldRef={(input) => { this.startDate = input; }}
+            isRequired
+          />
+          <span className="date-divider">to</span>
+          <FormField
+            id="endDate"
+            className="recap-admin-date-field"
+            type="date"
+            label="End Date"
+            fieldName="endDate"
+            instructionText="The end date as the format as MM/DD/YYYY"
+            value={this.state.formFields.endDate}
+            handleOnChange={this.handleInputChange}
+            errorField={this.state.fieldErrors.endDate}
+            fieldRef={(input) => { this.endDate = input; }}
+            isRequired
+          />
+        </div>
         <div className="nypl-submit-button-wrapper">
           <input
             className="nypl-primary-button"
@@ -332,25 +324,35 @@ class RefileErrorsForm extends Component {
   * @desc Renders the results of refile errors
   */
   renderRefileErrorResults() {
-    let resultContent = '';
+    let resultContent = null;
 
+    // Renders the error instruction based on the response from the Node server
     if (this.state.formResult.response) {
-      resultContent = <p>The input dates have invalid format or value, please check again.</p>;
-      return resultContent;
+      if (this.state.formResult.response.response.status === 400) {
+        resultContent = 'The input dates have invalid format or value, please check again.';
+      } else {
+        resultContent = 'Internal server error. Please check your credentials or try again later.';
+      }
+
+      return (
+        <p className="display-result-text">
+          {resultContent}
+        </p>
+      );
     }
 
     const itemRows = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       map(this.state.refileErrorResults, (item, i) =>
         <tr key={i}>
           <td>{item.id}</td>
-          <td>{item.itemBarcode}</td>
+          <th className="barcode-th">{item.itemBarcode}</th>
           <td>{(item.updatedDate) ? item.createdDate.split('T')[0] : ''}</td>
           <td>{(item.updatedDate) ? item.updatedDate.split('T')[0] : ''}</td>
         </tr>
       ) : null;
 
     resultContent = (itemRows) ? (
-      <table>
+      <table className="result-table">
         <caption className="hidden">Refile Error Details</caption>
         <thead>
           <tr>
@@ -360,13 +362,58 @@ class RefileErrorsForm extends Component {
             <th scope="col">Updated Date</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="result-table-body">
           {itemRows}
         </tbody>
       </table>
-    ) : <p>There is no refile errors in the range of the selected dates.</p>;
+    ) : <p className="display-result-text">There is no refile errors in the range of the selected dates.</p>;
 
     return resultContent;
+  }
+
+  /**
+  * @desc Renders the links to navigate through the pages of the results
+  * Based on the current page, if it is the first page, then there will not be the previous link.
+  * If it is the last page, then there will not be the next link.
+  */
+  renderPaginationLink(type) {
+    const offsetInt = parseInt(this.state.formFields.offset, 10);
+    const resultLimit = this.state.formFields.resultLimit;
+
+    if (this.state.refileErrorResults && this.state.refileErrorResults.length) {
+      if (type === 'pre') {
+        if (offsetInt <= 0) {
+          return;
+        }
+        return (
+          <a
+            className="previous-link pointer"
+            onClick={(e) => this.hitPageLink(e, 'pre')}
+            onKeyDown={(e) => this.hitPageLink(e, 'pre')}
+            role="link"
+            tabIndex="0"
+          >
+            Previous
+          </a>
+        );
+      }
+
+      if (parseInt(this.state.refileErrorResultsTotal, 10) <= offsetInt + resultLimit) {
+        return;
+      }
+      return (
+        <a
+          className="next-link pointer"
+          onClick={(e) => this.hitPageLink(e, 'next')}
+          onKeyDown={(e) => this.hitPageLink(e, 'next')}
+          role="link"
+          tabIndex="0"
+        >
+          Next
+        </a>
+      );
+    }
+    return;
   }
 
   render() {
@@ -377,10 +424,10 @@ class RefileErrorsForm extends Component {
     const totalPageNumber = Math.ceil((parseInt(totalResultCount, 10) / 25));
     const displayFields = this.state.displayFields;
     const displayingText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <p>Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p> :
+      <p className="display-result-text">Displaying {itemStart}-{itemEnd} of {totalResultCount} errors from {displayFields.startDate}-{displayFields.endDate}</p> :
       null;
     const pageText = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
-      <p>Page {currentPage} of {totalPageNumber}</p> : null;
+      <span className="page-count">Page {currentPage} of {totalPageNumber}</span> : null;
     const preButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
       <button onClick={(e) => this.hitPageButton(e, 'pre')}>Previous</button> : null;
     const nextButton = (this.state.refileErrorResults && this.state.refileErrorResults.length) ?
@@ -395,9 +442,11 @@ class RefileErrorsForm extends Component {
           {displayingText}
           {this.renderRefileErrorResults()}
         </div>
-        {preButton}
-        {pageText}
-        {nextButton}
+        <nav className="nypl-results-pagination">
+          {this.renderPaginationLink('pre')}
+          {pageText}
+          {this.renderPaginationLink('next')}
+        </nav>
       </div>
     );
   }
