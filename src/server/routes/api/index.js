@@ -187,7 +187,7 @@ export function getRefileErrors(req, res, next) {
 
 export function postBarcodeToRefile(req, res, next) {
   const postedBarcode = req.body.barcode;
-  const barcodeMatch = postedBarcode.length < 21;
+  const barcodeMatch = postedBarcode && postedBarcode.length < 21;
 
   // For the case the input does not have the valid format or value
   if (!barcodeMatch) {

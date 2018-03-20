@@ -86,8 +86,10 @@ class ClearItemStatusForm extends Component {
   * @param {object} state - the current state object
   */
   validateField(fieldName, state) {
-    if (state.formFields[fieldName].length > 20) {
-      this.setFieldError(fieldName, state, 'The barcode must be no longer than 20 digits');
+    const inputBarcode = state.formFields[fieldName];
+
+    if (inputBarcode.length > 20 || !inputBarcode) {
+      this.setFieldError(fieldName, state, 'The barcode is required and must be no longer than 20 digits');
 
       return fieldName;
     } else {
@@ -95,6 +97,29 @@ class ClearItemStatusForm extends Component {
     }
 
     return;
+  }
+
+  /**
+  * @desc Handles returning the correct DOM for the Form Submission API results
+  */
+  renderFormSubmissionResults() {
+    const { formResult } = this.state;
+    let resultClass = 'nypl-form-success';
+    let resultHeading = 'Success!';
+    let resultText = 'Your form submission has been accepted';
+
+    if (formResult && (formResult.processed === false || !isEmpty(formResult.response))) {
+      resultClass = 'nypl-form-error';
+      resultHeading = 'Error!';
+      resultText = 'The API has encountered an error, please try again later.';
+    }
+
+    return !isEmpty(formResult) && (
+      <div className={resultClass}>
+        <h2>{resultHeading}</h2>
+        <p>{resultText}</p>
+      </div>
+    );
   }
 
   /**
@@ -134,8 +159,9 @@ class ClearItemStatusForm extends Component {
 
     // Iterate through patron fields and ensure all fields are valid
     forIn(this.state.formFields, (value, key) => {
-      this.validateField(key, this.state, true);
-      fieldErrorsArray.push(this.validateField(key, this.state));
+      if (this.validateField(key, this.state)) {
+        fieldErrorsArray.push(this.validateField(key, this.state));
+      }
     });
 
     if (fieldErrorsArray.length) {
@@ -159,10 +185,12 @@ class ClearItemStatusForm extends Component {
         }
       ).then(response => {
         console.log('Form Successful Response: ', response);
+
         this.props.setApplicationLoadingState(false);
         this.setState({...this.baseState, formResult: { processed: true } });
       }).catch(error => {
         console.log('Form Error Response: ', error);
+
         this.props.setApplicationLoadingState(false);
         this.setState({...this.state, formResult: { processed: false, response: error } });
       });
@@ -173,6 +201,7 @@ class ClearItemStatusForm extends Component {
     return (
       <div className={this.props.className} id={this.props.id}>
         <h2>Refile</h2>
+        {this.renderFormSubmissionResults()}
         <h3>Set Item Status</h3>
         <p>Clear an "in transit" or "checked out" item status in Sierra</p>
         <form onSubmit={this.handleFormSubmit}>
