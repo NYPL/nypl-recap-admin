@@ -142,10 +142,21 @@ class ClearItemStatusForm extends Component {
           barcode,
         }
       ).then(response => {
-        console.log('Form Successful Response: ', response);
-
         this.props.setApplicationLoadingState(false);
-        this.setState({...this.baseState, formResult: { processed: true } });
+
+        const statusCode = (response.data.data.statusCode) ?
+          response.data.data.statusCode : undefined;
+
+        if (!statusCode || statusCode >= 400) {
+          const errorMessage = (response.data.data.message) ?
+            response.data.data.message : 'An unknown error';
+
+          console.log('Form Error Response: ', errorMessage);
+
+          this.setState({...this.state, formResult: { processed: false, response: errorMessage } });
+        } else {
+          this.setState({...this.baseState, formResult: { processed: true } });
+        }
       }).catch(error => {
         console.log('Form Error Response: ', error);
 

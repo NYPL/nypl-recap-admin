@@ -201,7 +201,7 @@ export function postBarcodeToRefile(req, res, next) {
   const client = constructNyplApiClient();
 
   client.post(
-    '/v0.1/recap/refile-requests',
+    'recap/refile-requests',
     { itemBarcode: postedBarcode },
     { json: true }
   )
