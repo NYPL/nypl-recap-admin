@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import axios from  'axios';
+import axios from 'axios';
 import isEmpty from 'lodash/isEmpty';
 import forIn from 'lodash/forIn';
 import { isBarcodeValid } from '../../utils/ValidationUtils';
@@ -12,35 +12,14 @@ class ClearItemStatusForm extends Component {
     this.state = {
       type: 'refile',
       formFields: {
-        barcode: ''
+        barcode: '',
       },
       fieldErrors: {},
-      formResult: {}
+      formResult: {},
     };
     this.baseState = this.state;
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
-  }
-
-  /**
-  * @desc Handles updating the state for the given field name based on the value changes
-  * @param {object} event - contains the current event context of the input field
-  */
-  handleInputChange(event) {
-    const target = event.target;
-    const value = target.value;
-    const name = target.name;
-    this.setState({ formFields: {...this.state.formFields, [name]: value} });
-  }
-
-  /**
-  * @desc Handles executing the focus() function for the given fieldName React ref instance
-  * @param {string} fieldName - the ref string name
-  */
-  focusOnField(fieldName) {
-    if (this[fieldName]) {
-      this[fieldName].focus();
-    }
   }
 
   /**
@@ -89,66 +68,45 @@ class ClearItemStatusForm extends Component {
     const inputBarcode = state.formFields[fieldName];
 
     if (inputBarcode.length > 20 || !inputBarcode) {
-      this.setFieldError(fieldName, state, 'The barcode is required and must be no longer than 20 digits');
+      this.setFieldError(
+        fieldName,
+        state,
+        'The barcode is required and must be no longer than 20 digits'
+      );
 
       return fieldName;
-    } else {
-      this.removeFieldError(fieldName, state);
     }
 
-    return;
+    this.removeFieldError(fieldName, state);
+
+    return null;
   }
 
   /**
-  * @desc Handles returning the correct DOM for the Form Submission API results
+  * @desc Handles updating the state for the given field name based on the value changes
+  * @param {object} event - contains the current event context of the input field
   */
-  renderFormSubmissionResults() {
-    const { formResult } = this.state;
-    let resultClass = 'nypl-form-success';
-    let resultHeading = 'Success!';
-    let resultText = 'Your form submission has been accepted';
-
-    if (formResult && (formResult.processed === false || !isEmpty(formResult.response))) {
-      resultClass = 'nypl-form-error';
-      resultHeading = 'Error!';
-      resultText = 'The API has encountered an error, please try again later.';
-    }
-
-    return !isEmpty(formResult) && (
-      <div className={resultClass}>
-        <h2>{resultHeading}</h2>
-        <p>{resultText}</p>
-      </div>
-    );
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+    this.setState({ formFields: {...this.state.formFields, [name]: value} });
   }
 
   /**
-  * @desc Handles returning the correct DOM for the Form Submission API results
+  * @desc Handles executing the focus() function for the given fieldName React ref instance
+  * @param {string} fieldName - the ref string name
   */
-  renderFormSubmissionResults() {
-    const { formResult } = this.state;
-    let resultClass = 'nypl-form-success';
-    let resultHeading = 'Success!';
-    let resultText = 'Your form submission has been accepted';
-
-    if (formResult && (formResult.processed === false || !isEmpty(formResult.response))) {
-      resultClass = 'nypl-form-error';
-      resultHeading = 'Error!';
-      resultText = 'The API has encountered an error, please try again later.';
+  focusOnField(fieldName) {
+    if (this[fieldName]) {
+      this[fieldName].focus();
     }
-
-    return !isEmpty(formResult) && (
-      <div className={resultClass}>
-        <h2>{resultHeading}</h2>
-        <p>{resultText}</p>
-      </div>
-    );
   }
 
   /**
   * @desc Handles sending the form field payload from the state to the proper API endpoint. All
-  * fields are validated prior to executing the ajax call. Updates the form state booleans and result
-  * based on successful or error responses
+  * fields are validated prior to executing the ajax call. Updates the form state booleans and
+  * result based on successful or error responses
   * @param {object} event - contains the current event context of the field
   */
   handleFormSubmit(event) {
@@ -172,7 +130,7 @@ class ClearItemStatusForm extends Component {
       const {
         formFields: {
           barcode,
-        }
+        },
       } = this.state;
 
       // Update the Parent Container Loading State
@@ -195,6 +153,29 @@ class ClearItemStatusForm extends Component {
         this.setState({...this.state, formResult: { processed: false, response: error } });
       });
     }
+  }
+
+  /**
+  * @desc Handles returning the correct DOM for the Form Submission API results
+  */
+  renderFormSubmissionResults() {
+    const { formResult } = this.state;
+    let resultClass = 'nypl-form-success';
+    let resultHeading = 'Success!';
+    let resultText = 'Your form submission has been accepted';
+
+    if (formResult && (formResult.processed === false || !isEmpty(formResult.response))) {
+      resultClass = 'nypl-form-error';
+      resultHeading = 'Error!';
+      resultText = 'The API has encountered an error, please try again later.';
+    }
+
+    return !isEmpty(formResult) && (
+      <div className={resultClass}>
+        <h2>{resultHeading}</h2>
+        <p>{resultText}</p>
+      </div>
+    );
   }
 
   render() {
@@ -227,7 +208,7 @@ class ClearItemStatusForm extends Component {
               disabled={this.props.isFormProcessing}
             />
           </div>
-      </form>
+        </form>
       </div>
     );
   }
@@ -237,12 +218,12 @@ ClearItemStatusForm.propTypes = {
   className: PropTypes.string,
   id: PropTypes.string,
   isFormProcessing: PropTypes.bool,
-  setApplicationLoadingState: PropTypes.func
+  setApplicationLoadingState: PropTypes.func,
 };
 
 ClearItemStatusForm.defaultProps = {
   className: '',
-  id: ''
+  id: '',
 };
 
 export default ClearItemStatusForm;
