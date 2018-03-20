@@ -5,7 +5,8 @@ import isEmpty from 'lodash/isEmpty';
 import { forIn } from 'lodash';
 import FormField from '../../components/FormField/FormField';
 import moment from 'moment';
-import { modelRefileErrorResponse } from './../../utils/modelRefileErrorDataUtils';
+import { modelRefileErrorResponse } from './../../utils/ModelRefileErrorDataUtils';
+import { isDateValid } from './../../utils/ValidationUtils';
 
 
 class RefileErrorsForm extends Component {
@@ -99,46 +100,13 @@ class RefileErrorsForm extends Component {
   }
 
   /**
-  * @desc Validates the input
-  * @param {string} date - the string of the input value
-  */
-  isDateValid(dateInput) {
-    if (!dateInput) {
-      return false;
-    }
-
-    const dateArray = dateInput.split('-');
-    const month = parseInt(dateArray[1], 10);
-    const date = parseInt(dateArray[2], 10);
-    // Checks if it has a valid date format. The Regex check if the inputs are digits
-    // and if they have right number of digits
-    const dateMatches = dateInput.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
-
-    if (!dateMatches) {
-      return false;
-    }
-
-    // Checks if the month is valid
-    if (month < 1 || month > 12) {
-      return false;
-    }
-
-    // Checks if the date is valid
-    if (date < 1 || date > 31) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
   * @desc Handles validating the given fieldName based on the validation rules for the type of input
   * @param {string} fieldName - the string name of the input field
   * @param {object} state - the current state object
   */
   validateField(fieldName, state) {
     if (fieldName === 'startDate' || fieldName === 'endDate') {
-      if (!this.isDateValid(state.formFields[fieldName])) {
+      if (!isDateValid(state.formFields[fieldName])) {
         this.setFieldError(
           fieldName, state,
           'Please enter the date following the format MM/DD/YYYY'

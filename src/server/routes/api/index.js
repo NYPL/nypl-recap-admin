@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import config from '../../../../config/appConfig';
 import NyplApiClient from '@nypl/nypl-data-api-client';
+import { isDateValid } from './../../../shared/utils/ValidationUtils';
 
 function constructApiHeaders(token = '') {
   return {
@@ -118,28 +119,8 @@ export function handleSqsDataProcessing(sqsClient, type) {
 function constructDateQuery(dateInput, isEndDate = false) {
   const lastSecond = (isEndDate) ? 'T23:59:59' : '';
 
-  if (dateInput && typeof dateInput === 'string') {
+  if (isDateValid(dateInput)) {
     const dateArray = dateInput.split('-');
-    const month = parseInt(dateArray[1], 10);
-    const date = parseInt(dateArray[2], 10);
-
-    // Checks if it has a valid date format. The Regex check if the inputs are digits
-    // and if they have right number of digits
-    const date_matches = dateInput.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
-
-    if (!date_matches) {
-      return undefined;
-    }
-
-    // Checks if the month is valid
-    if (month < 1 || month > 12) {
-      return undefined;
-    }
-
-    // Checks if the date is valid
-    if (date < 1 || date > 31) {
-      return undefined;
-    }
 
     return `${dateArray[0]}-${dateArray[1]}-${dateArray[2]}${lastSecond}`;
   }
