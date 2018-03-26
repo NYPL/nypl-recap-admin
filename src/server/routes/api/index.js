@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import config from '../../../../config/appConfig';
 import NyplApiClient from '@nypl/nypl-data-api-client';
+import { isDateValid } from './../../../shared/utils/ValidationUtils';
 
 function constructApiHeaders(token = '') {
   return {
@@ -118,33 +119,24 @@ export function handleSqsDataProcessing(sqsClient, type) {
 function constructDateQuery(dateInput, isEndDate = false) {
   const lastSecond = (isEndDate) ? 'T23:59:59' : '';
 
-  if (dateInput && typeof dateInput === 'string') {
+  if (isDateValid(dateInput)) {
     const dateArray = dateInput.split('-');
-    const month = parseInt(dateArray[1], 10);
-    const date = parseInt(dateArray[2], 10);
-
-    // Checks if it has a valid date format. The Regex check if the inputs are digits
-    // and if they have right number of digits
-    const date_matches = dateInput.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
-
-    if (!date_matches) {
-      return undefined;
-    }
-
-    // Checks if the month is valid
-    if (month < 1 || month > 12) {
-      return undefined;
-    }
-
-    // Checks if the date is valid
-    if (date < 1 || date > 31) {
-      return undefined;
-    }
 
     return `${dateArray[0]}-${dateArray[1]}-${dateArray[2]}${lastSecond}`;
   }
 
   return undefined;
+}
+
+function constructNyplApiClient() {
+  const client = new NyplApiClient({
+    base_url: config.nyplMicroService.platformBaseUrl,
+    oauth_key: config.nyplMicroService.refileRequestId,
+    oauth_secret: config.nyplMicroService.refileRequestSecret,
+    oauth_url: config.nyplMicroService.tokenUrlForNyplApiClient,
+  });
+
+  return client;
 }
 
 /**
@@ -159,7 +151,7 @@ export function getRefileErrors(req, res, next) {
   const offsetQuery = req.body.offset;
   const limitQuery = req.body.resultLimit;
 
-  // For the case the date inputs are not valid format or value
+  // For the case the date inputs do not have the valid formats or values
   if (!startDateQuery || !endDateQuery) {
     res.status(400)
     .header('Content-Type', 'application/json')
@@ -168,12 +160,7 @@ export function getRefileErrors(req, res, next) {
     });
   }
 
-  const client = new NyplApiClient({
-    base_url: config.nyplMicroService.platformBaseUrl,
-    oauth_key: config.nyplMicroService.refileRequestId,
-    oauth_secret: config.nyplMicroService.refileRequestSecret,
-    oauth_url: config.nyplMicroService.tokenUrlForNyplApiClient,
-  });
+  const client = constructNyplApiClient();
 
   client.get(
     `recap/refile-requests?createdDate=[${startDateQuery},${endDateQuery}]`+
@@ -190,7 +177,43 @@ export function getRefileErrors(req, res, next) {
     });
   })
   .catch(error => {
-   res.status(500)
+    res.status(500)
+    .header('Content-Type', 'application/json')
+    .json({
+      data: error
+    });
+  });
+}
+
+export function postBarcodeToRefile(req, res, next) {
+  const postedBarcode = req.body.barcode;
+  const barcodeMatch = postedBarcode.length < 21;
+
+  // For the case the input does not have the valid format or value
+  if (!barcodeMatch) {
+    res.status(400)
+    .header('Content-Type', 'application/json')
+    .json({
+      message: 'Not a valid barcode.'
+    });
+  }
+
+  const client = constructNyplApiClient();
+
+  client.post(
+    'recap/refile-requests',
+    { itemBarcode: postedBarcode },
+    { json: true }
+  )
+  .then(response => {
+    res.status(200)
+    .header('Content-Type', 'application/json')
+    .json({
+      data: response
+    });
+  })
+  .catch(error => {
+    res.status(500)
     .header('Content-Type', 'application/json')
     .json({
       data: error

@@ -2,7 +2,7 @@ import { map } from 'lodash';
 import React from 'react';
 
 /**
-* @desc Renders the rows of the table to display refile errors.
+* @desc Renders the rows of the table that displays refile errors.
 */
 export function modelRefileErrorResponse(data) {
   const modeledData = [];

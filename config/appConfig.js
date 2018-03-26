@@ -8,10 +8,6 @@ export default {
   favIconPath: '//d2znry4lg8s0tq.cloudfront.net/images/favicon.ico',
   applicationPort: 3001,
   webpackDevServerPort: 3000,
-  platformApi: {
-    development: 'https://dev-platformdocs.nypl.org/v0.1',
-    production: '',
-  },
   oauth: {
     authorizationUrl: process.env.OAUTH_AUTH_URL || 'https://isso.nypl.org/oauth/authorize',
     tokenUrl: process.env.OAUTH_TOKEN_URL || 'https://isso.nypl.org/oauth/token',
