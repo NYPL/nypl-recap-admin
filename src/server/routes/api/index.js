@@ -1,5 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import config from '../../../../config/appConfig';
+import inputFieldConfig from '../../../../config/inputFieldConfig';
 import NyplApiClient from '@nypl/nypl-data-api-client';
 import { isDateValid } from './../../../shared/utils/ValidationUtils';
 
@@ -187,7 +188,8 @@ export function getRefileErrors(req, res, next) {
 
 export function postBarcodeToRefile(req, res, next) {
   const postedBarcode = req.body.barcode;
-  const barcodeMatch = postedBarcode && postedBarcode.length < 21;
+  const barcodeMatch = postedBarcode &&
+    (postedBarcode.length <= inputFieldConfig.refile.maxRefileBarcodeLength);
 
   // For the case the input does not have the valid format or value
   if (!barcodeMatch) {

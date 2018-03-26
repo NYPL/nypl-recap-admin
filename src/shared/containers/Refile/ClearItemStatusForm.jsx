@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import forIn from 'lodash/forIn';
 import { isBarcodeValid } from '../../utils/ValidationUtils';
 import FormField from '../../components/FormField/FormField';
+import inputFieldConfig from '../../../../config/inputFieldConfig';
 
 class ClearItemStatusForm extends Component {
   constructor(props) {
@@ -66,8 +67,9 @@ class ClearItemStatusForm extends Component {
   */
   validateField(fieldName, state) {
     const inputBarcode = state.formFields[fieldName];
+    const maxRefileBarcodeLength = inputFieldConfig.refile.maxRefileBarcodeLength;
 
-    if (inputBarcode.length > 20 || !inputBarcode) {
+    if (inputBarcode.length > maxRefileBarcodeLength || !inputBarcode) {
       this.setFieldError(
         fieldName,
         state,
