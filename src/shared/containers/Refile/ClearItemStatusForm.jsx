@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import axios from  'axios';
+import axios from 'axios';
 import isEmpty from 'lodash/isEmpty';
 import forIn from 'lodash/forIn';
 import { isBarcodeValid } from '../../utils/ValidationUtils';
 import FormField from '../../components/FormField/FormField';
+import inputFieldConfig from '../../../../config/inputFieldConfig';
 
 class ClearItemStatusForm extends Component {
   constructor(props) {
@@ -12,35 +13,14 @@ class ClearItemStatusForm extends Component {
     this.state = {
       type: 'refile',
       formFields: {
-        barcode: ''
+        barcode: '',
       },
       fieldErrors: {},
-      formResult: {}
+      formResult: {},
     };
     this.baseState = this.state;
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
-  }
-
-  /**
-  * @desc Handles updating the state for the given field name based on the value changes
-  * @param {object} event - contains the current event context of the input field
-  */
-  handleInputChange(event) {
-    const target = event.target;
-    const value = target.value;
-    const name = target.name;
-    this.setState({ formFields: {...this.state.formFields, [name]: value} });
-  }
-
-  /**
-  * @desc Handles executing the focus() function for the given fieldName React ref instance
-  * @param {string} fieldName - the ref string name
-  */
-  focusOnField(fieldName) {
-    if (this[fieldName]) {
-      this[fieldName].focus();
-    }
   }
 
   /**
@@ -86,15 +66,106 @@ class ClearItemStatusForm extends Component {
   * @param {object} state - the current state object
   */
   validateField(fieldName, state) {
-    if (state.formFields[fieldName].length > 20) {
-      this.setFieldError(fieldName, state, 'The barcode must be no longer than 20 digits');
+    const inputBarcode = state.formFields[fieldName];
+    const maxRefileBarcodeLength = inputFieldConfig.refile.maxRefileBarcodeLength;
+
+    if (inputBarcode.length > maxRefileBarcodeLength || !inputBarcode) {
+      this.setFieldError(
+        fieldName,
+        state,
+        'The barcode is required and must be no longer than 20 digits'
+      );
 
       return fieldName;
-    } else {
-      this.removeFieldError(fieldName, state);
     }
 
-    return;
+    this.removeFieldError(fieldName, state);
+
+    return null;
+  }
+
+  /**
+  * @desc Handles updating the state for the given field name based on the value changes
+  * @param {object} event - contains the current event context of the input field
+  */
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+    this.setState({ formFields: {...this.state.formFields, [name]: value} });
+  }
+
+  /**
+  * @desc Handles executing the focus() function for the given fieldName React ref instance
+  * @param {string} fieldName - the ref string name
+  */
+  focusOnField(fieldName) {
+    if (this[fieldName]) {
+      this[fieldName].focus();
+    }
+  }
+
+  /**
+  * @desc Handles sending the form field payload from the state to the proper API endpoint. All
+  * fields are validated prior to executing the ajax call. Updates the form state booleans and
+  * result based on successful or error responses
+  * @param {object} event - contains the current event context of the field
+  */
+  handleFormSubmit(event) {
+    event.preventDefault();
+
+    // The array that stores the results after validating the inputs
+    const fieldErrorsArray = [];
+
+    // Iterate through patron fields and ensure all fields are valid
+    forIn(this.state.formFields, (value, key) => {
+      if (this.validateField(key, this.state)) {
+        fieldErrorsArray.push(this.validateField(key, this.state));
+      }
+    });
+
+    if (fieldErrorsArray.length) {
+      this.focusOnField(fieldErrorsArray[0]);
+    }
+
+    if (!fieldErrorsArray.length) {
+      const {
+        formFields: {
+          barcode,
+        },
+      } = this.state;
+
+      // Update the Parent Container Loading State
+      this.props.setApplicationLoadingState(true);
+
+      return axios.post(
+        '/set-item-status',
+        {
+          barcode,
+        }
+      ).then(response => {
+        this.props.setApplicationLoadingState(false);
+
+        const statusCode = (response.data.data.statusCode) ?
+          response.data.data.statusCode : undefined;
+
+        if (!statusCode || statusCode >= 400) {
+          const errorMessage = (response.data.data.message) ?
+            response.data.data.message : 'An unknown error';
+
+          console.log('Form Error Response: ', errorMessage);
+
+          this.setState({...this.state, formResult: { processed: false, response: errorMessage } });
+        } else {
+          this.setState({...this.baseState, formResult: { processed: true } });
+        }
+      }).catch(error => {
+        console.log('Form Error Response: ', error);
+
+        this.props.setApplicationLoadingState(false);
+        this.setState({...this.state, formResult: { processed: false, response: error } });
+      });
+    }
   }
 
   /**
@@ -120,59 +191,11 @@ class ClearItemStatusForm extends Component {
     );
   }
 
-  /**
-  * @desc Handles sending the form field payload from the state to the proper API endpoint. All
-  * fields are validated prior to executing the ajax call. Updates the form state booleans and result
-  * based on successful or error responses
-  * @param {object} event - contains the current event context of the field
-  */
-  handleFormSubmit(event) {
-    event.preventDefault();
-
-    // The array that stores the results after validating the inputs
-    const fieldErrorsArray = [];
-
-    // Iterate through patron fields and ensure all fields are valid
-    forIn(this.state.formFields, (value, key) => {
-      this.validateField(key, this.state, true);
-      fieldErrorsArray.push(this.validateField(key, this.state));
-    });
-
-    if (fieldErrorsArray.length) {
-      this.focusOnField(fieldErrorsArray[0]);
-    }
-
-    if (!fieldErrorsArray.length) {
-      const {
-        formFields: {
-          barcode,
-        }
-      } = this.state;
-
-      // Update the Parent Container Loading State
-      this.props.setApplicationLoadingState(true);
-
-      return axios.post(
-        '/set-item-status',
-        {
-          barcode,
-        }
-      ).then(response => {
-        console.log('Form Successful Response: ', response);
-        this.props.setApplicationLoadingState(false);
-        this.setState({...this.baseState, formResult: { processed: true } });
-      }).catch(error => {
-        console.log('Form Error Response: ', error);
-        this.props.setApplicationLoadingState(false);
-        this.setState({...this.state, formResult: { processed: false, response: error } });
-      });
-    }
-  }
-
   render() {
     return (
       <div className={this.props.className} id={this.props.id}>
         <h2>Refile</h2>
+        {this.renderFormSubmissionResults()}
         <h3>Set Item Status</h3>
         <p>Clear an "in transit" or "checked out" item status in Sierra</p>
         <form onSubmit={this.handleFormSubmit}>
@@ -198,7 +221,7 @@ class ClearItemStatusForm extends Component {
               disabled={this.props.isFormProcessing}
             />
           </div>
-      </form>
+        </form>
       </div>
     );
   }
@@ -208,12 +231,12 @@ ClearItemStatusForm.propTypes = {
   className: PropTypes.string,
   id: PropTypes.string,
   isFormProcessing: PropTypes.bool,
-  setApplicationLoadingState: PropTypes.func
+  setApplicationLoadingState: PropTypes.func,
 };
 
 ClearItemStatusForm.defaultProps = {
   className: '',
-  id: ''
+  id: '',
 };
 
 export default ClearItemStatusForm;

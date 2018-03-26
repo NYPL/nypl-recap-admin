@@ -124,7 +124,7 @@ class RefileErrorsForm extends Component {
 
   /**
   * @desc When the submit button is clicked, it handles the event and executes handleFormSubmit()
-  * @param {event} event - the click event
+  * @param {object} event - the click event
   */
   clickSubmit(event) {
     event.preventDefault();
