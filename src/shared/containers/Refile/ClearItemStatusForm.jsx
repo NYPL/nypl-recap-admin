@@ -112,7 +112,7 @@ class ClearItemStatusForm extends Component {
   handleFormSubmit(event) {
     event.preventDefault();
 
-    // The array that stores the results after validating the date inputs
+    // The array that stores the results after validating the inputs
     const fieldErrorsArray = [];
 
     // Iterate through patron fields and ensure all fields are valid

@@ -15,16 +15,16 @@ export function isDateValid(dateInput) {
     return false;
   }
 
-  const dateArray = dateInput.split('-');
-  const month = parseInt(dateArray[1], 10);
-  const date = parseInt(dateArray[2], 10);
   // Checks if it has a valid date format. The Regex check if the inputs are digits
   // and if they have right number of digits
-  const dateMatches = dateInput.match(/^(\d{4})\-(\d{2})\-(?:\d{2})$/);
+  const dateMatches = dateInput.match(/^(\d{4})\-(\d{2})\-(\d{2})$/);
 
   if (!dateMatches) {
     return false;
   }
+
+  const month = parseInt(dateMatches[2], 10);
+  const date = parseInt(dateMatches[3], 10);
 
   // Checks if the month is valid
   if (month < 1 || month > 12) {
