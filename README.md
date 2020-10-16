@@ -1,4 +1,4 @@
-# NYPL ReCAP Admin UI
+# NYPL ReCAP Admin UI (Deprecated)
 ## Version
 > 0.0.1
 
